@@ -26,7 +26,7 @@ Repozitář: `lenochod86/TimeTrek`, větev `main`.
 - Před každým commitem spusť kontroly níže. Nikdy necommituj červený stav.
 - Nikdy nedělej force push a nepřepisuj historii, která už je pushnutá.
 - Na začátku session spusť `git status` a `git fetch`. Nikdy nepřepisuj ani nemaž necommitnuté změny; napřed se zeptej.
-- Do repozitáře nikdy nedávej: hesla, tokeny, uživatelova data (`%AppData%\com.timetrek.app`: databáze, snímky, nastavení) ani snímky uživatelovy obrazovky. Generované soubory (`node_modules/`, `dist/`, `src-tauri/target/`, `src-tauri/gen/`) zůstávají v `.gitignore`.
+- Do repozitáře nikdy nedávej: hesla, tokeny, uživatelova data (`%AppData%\TimeTrek`: databáze, snímky, nastavení) ani snímky uživatelovy obrazovky. Generované soubory (`node_modules/`, `dist/`, `src-tauri/target/`, `src-tauri/gen/`) zůstávají v `.gitignore`.
 - Když GitHub není dostupný, řekni to uživateli. Push nikdy potichu nevynechej.
 
 ## Kontroly před commitem
@@ -50,7 +50,7 @@ Repozitář je privátní a minuty Actions jsou omezené (uživatel je pro tento
 - Rozhodování měření je v `Engine::step` (`tracker.rs`), čisté funkci času, sekund nečinnosti, stavu zámku a aktivního okna. Tak to nech, aby šla testovat se simulovaným časem.
 - Nikdy neblokuj smyčku trackeru: pomalá práce (snímky, stahování faviconů) běží na vlastním vlákně.
 - Soukromí: vše zůstává na počítači. Ukládej jen **doménu** webu, nikdy celou URL. Anonymní okna prohlížeče se neměří ani nefotí. Favicony stahuj přímo z navštíveného webu, nikdy přes službu třetí strany. Žádná telemetrie.
-- **Data patří do `app.path().app_data_dir()`** (`%AppData%\<identifier>`), nikdy do vlastně pojmenované složky. Přesně tuto složku a stejnojmennou v `%LocalAppData%` maže odinstalátor při volbě „Delete the application data“; jiné umístění by po odinstalaci zůstalo na disku. Při změně `identifier` v `tauri.conf.json` se data „ztratí“, proto ho neměň.
+- **Data jsou v `%AppData%\TimeTrek`** (`app.path().data_dir().join("TimeTrek")`). Generovaný odinstalátor Tauri maže jen složky podle identifikátoru, proto tuto složku při volbě „Delete the application data“ maže vlastní krok v `src-tauri/windows/hooks.nsh` (`installerHooks` v `tauri.conf.json`). Změníš-li název složky, změň ho i tam (`TT_DATA_DIRNAME`).
 - Čas se ukládá v milisekundách od epochy; hranice dne (lokální půlnoc) se počítají v UI.
 - Každé nové pravidlo měření má test v `tracker.rs`; každá oprava chyby má test, který chybu chytí.
 - Drž styl okolního kódu. Nastavení, která uživatel může měnit, patří do dialogu Nastavení (`src/components/Dialogs.tsx`) a uplatní se bez restartu.

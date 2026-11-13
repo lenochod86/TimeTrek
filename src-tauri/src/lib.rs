@@ -31,10 +31,9 @@ pub fn run() {
             Some(vec!["--hidden"]),
         ))
         .setup(|app| {
-            // %AppData%\com.timetrek.app: přesně tuto složku (a stejnojmennou v %LocalAppData%)
-            // maže odinstalátor při volbě "Delete the application data". Jiné umístění
-            // by po odinstalaci s vymazáním dat zůstalo na disku.
-            let data_dir = app.path().app_data_dir()?;
+            // %AppData%\TimeTrek. Při volbě "Delete the application data" ji maže odinstalátor
+            // vlastním krokem v src-tauri/windows/hooks.nsh (názvy musí zůstat shodné).
+            let data_dir = app.path().data_dir()?.join("TimeTrek");
             std::fs::create_dir_all(&data_dir)?;
             let db_path = data_dir.join("timetrek.db");
             let conn = db::open(&db_path)?;
