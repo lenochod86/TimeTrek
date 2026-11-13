@@ -31,13 +31,14 @@ cd src-tauri; cargo test
 
 ### CI/CD
 
-Repozitář je privátní a minuty GitHub Actions jsou omezené, proto se nic nespouští samo při pushi:
+Build a kontroly běží na serveru (GitHub Actions):
 
-- `pwsh .github/scripts/Verify-Local.ps1`: kontroly lokálně (verze, typy, build frontendu, testy)
-- `pwsh .github/scripts/Release-Local.ps1`: vydání verze z tohoto počítače (tag + GitHub Release s instalátorem)
-- `.github/workflows/ci.yml`: stejné kontroly na GitHubu, jen ručně (Run workflow)
-- `.github/workflows/release.yml`: sestaví instalátor a vydá release při pushi tagu `vX.Y.Z`, nebo ručně
-  jako artefakt běhu
+- `.github/workflows/ci.yml`: při každém pushi do `main` a při PR (verze, typy, build frontendu, testy)
+- `.github/workflows/release.yml`: sestaví instalátor a vydá GitHub Release při pushi tagu `vX.Y.Z`;
+  ručně (Run workflow) jen sestaví instalátor jako artefakt
+- `pwsh .github/scripts/Release.ps1`: vytvoří a pushne tag (po zvýšení verze ve třech souborech), instalátor
+  pak sestaví server
+- `pwsh .github/scripts/Verify-Local.ps1`: stejné kontroly jako CI, lokálně
 
 Data jsou v `%AppData%\TimeTrek` (`timetrek.db`, `screens/`, `settings.json`). Při odinstalaci s volbou
 „Delete the application data“ je maže vlastní krok instalátoru (`src-tauri/windows/hooks.nsh`).

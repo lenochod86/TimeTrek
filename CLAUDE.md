@@ -36,12 +36,14 @@ Repozitář: `lenochod86/TimeTrek`, větev `main`.
 
 ## CI/CD a minuty GitHub Actions
 
-Repozitář je privátní a minuty Actions jsou omezené (uživatel je pro tento měsíc vyčerpal; Windows runner se počítá 2×). Proto:
+Repozitář je **veřejný**, takže minuty Actions jsou zdarma. Build a kontroly běží na serveru (GitHub Actions), ne na uživatelově PC:
 
-- Workflow v `.github/workflows/` se **nikdy nespouští automaticky při pushi ani PR**. `ci.yml` je jen ruční (`workflow_dispatch`), `release.yml` jen na tag `v*` nebo ručně. Nepřidávej triggery `push` / `pull_request` bez souhlasu uživatele.
-- Běžnou kontrolu dělá lokálně `Verify-Local.ps1`; nepouštěj workflow jen kvůli ověření.
-- Vydání verze: `pwsh .github/scripts/Release-Local.ps1` (ověří, sestaví instalátor na tomto počítači, vytvoří tag a GitHub Release; nepálí minuty). Je to venku viditelná akce, proto jen na výslovné přání uživatele. Verzi před tím zvyš a zacommituj (viz Build a verze).
+- `ci.yml` se spouští při každém pushi do `main` a při pull requestu (verze, `tsc`, `vite build`, `cargo test`; zhruba 5 minut na `windows-latest`). Po pushi počkej na výsledek (`gh run watch`) a červený běh oprav.
+- Vydání verze: zvyš verzi (viz Build a verze), zacommituj, pushni a spusť `pwsh .github/scripts/Release.ps1`. Skript jen vytvoří a pushne tag `vX.Y.Z`; **instalátor sestaví a GitHub Release vytvoří `release.yml` na serveru**. Je to venku viditelná akce, proto jen na výslovné přání uživatele.
+- `release.yml` jde pustit i ručně (`gh workflow run release.yml`): sestaví instalátor jako artefakt běhu bez vydání. Hodí se na vyzkoušení buildu.
+- `Verify-Local.ps1` dělá stejné kontroly lokálně; pouštěj ho před commitem, ať se necommituje červený stav.
 - `Check-Versions.ps1` hlídá, že `package.json`, `Cargo.toml` a `tauri.conf.json` mají stejnou verzi (u tagu i shodu s tagem).
+- Kdyby se repozitář vrátil na privátní, minuty jsou omezené: pak z `ci.yml` odeber triggery `push` / `pull_request` a zeptej se uživatele.
 
 ## Architektura a kód
 
