@@ -31,9 +31,17 @@ Repozitář: `lenochod86/TimeTrek`, větev `main`.
 
 ## Kontroly před commitem
 
-- `npx tsc --noEmit` (typy frontendu)
-- `cd src-tauri && cargo test` (testy v Rustu; žádná varování)
+- `pwsh .github/scripts/Verify-Local.ps1`: shoda verzí, `tsc`, `vite build` a `cargo test` (žádná varování). To je to, co by dělalo CI, jen zdarma na tomto počítači.
 - Cokoli, co mění chování, se navíc vyzkouší ve skutečné aplikaci (viz „Ověření ve skutečné aplikaci“).
+
+## CI/CD a minuty GitHub Actions
+
+Repozitář je privátní a minuty Actions jsou omezené (uživatel je pro tento měsíc vyčerpal; Windows runner se počítá 2×). Proto:
+
+- Workflow v `.github/workflows/` se **nikdy nespouští automaticky při pushi ani PR**. `ci.yml` je jen ruční (`workflow_dispatch`), `release.yml` jen na tag `v*` nebo ručně. Nepřidávej triggery `push` / `pull_request` bez souhlasu uživatele.
+- Běžnou kontrolu dělá lokálně `Verify-Local.ps1`; nepouštěj workflow jen kvůli ověření.
+- Vydání verze: `pwsh .github/scripts/Release-Local.ps1` (ověří, sestaví instalátor na tomto počítači, vytvoří tag a GitHub Release; nepálí minuty). Je to venku viditelná akce, proto jen na výslovné přání uživatele. Verzi před tím zvyš a zacommituj (viz Build a verze).
+- `Check-Versions.ps1` hlídá, že `package.json`, `Cargo.toml` a `tauri.conf.json` mají stejnou verzi (u tagu i shodu s tagem).
 
 ## Architektura a kód
 

@@ -28,6 +28,16 @@ npm run icons          # přegeneruje ikony z assets/icon/timetrek.svg
 cd src-tauri; cargo test
 ```
 
+### CI/CD
+
+Repozitář je privátní a minuty GitHub Actions jsou omezené, proto se nic nespouští samo při pushi:
+
+- `pwsh .github/scripts/Verify-Local.ps1`: kontroly lokálně (verze, typy, build frontendu, testy)
+- `pwsh .github/scripts/Release-Local.ps1`: vydání verze z tohoto počítače (tag + GitHub Release s instalátorem)
+- `.github/workflows/ci.yml`: stejné kontroly na GitHubu, jen ručně (Run workflow)
+- `.github/workflows/release.yml`: sestaví instalátor a vydá release při pushi tagu `vX.Y.Z`, nebo ručně
+  jako artefakt běhu
+
 Data jsou v `%AppData%\TimeTrek` (`timetrek.db`, `screens/`, `settings.json`).
 Pokročilé volby (interval snímků, retence…) jsou v `settings.json`.
 

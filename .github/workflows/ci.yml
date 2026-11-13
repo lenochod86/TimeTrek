@@ -1,0 +1,32 @@
+# Kontroly (verze, typy, testy). SPOUŠTÍ SE JEN RUČNĚ (Actions -> CI -> Run workflow),
+# protože repozitář je privátní a minuty Actions jsou omezené (Windows runner se počítá 2×).
+# Běžně stačí lokálně: pwsh .github/scripts/Verify-Local.ps1
+name: CI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      - name: Verify
+        shell: pwsh
+        run: ./.github/scripts/Verify-Local.ps1
