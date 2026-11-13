@@ -1,7 +1,6 @@
-# Sestaví instalátor. SPOUŠTÍ SE JEN NA TAG vX.Y.Z nebo RUČNĚ (minuty Actions jsou omezené).
-#  - push tagu vX.Y.Z  -> GitHub Release s instalátorem
+# Sestaví instalátor na serveru.
+#  - push tagu vX.Y.Z  -> GitHub Release s instalátorem (tag vytvoří: pwsh .github/scripts/Release.ps1)
 #  - ruční spuštění    -> instalátor jako artefakt běhu (bez releasu)
-# Zdarma varianta bez Actions: pwsh .github/scripts/Release-Local.ps1
 name: Release
 
 on:

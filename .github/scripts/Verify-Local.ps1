@@ -19,8 +19,8 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-Location (Resolve-Path (Join-Path $PSScriptRoot '..\..'))
 
-# Nový shell nemusí mít node/cargo na PATH (instalováno přes winget).
-$env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
+# Nový shell nemusí mít node/cargo na PATH (instalováno přes winget); PATH se jen doplní, nepřepisuje.
+$env:Path = "$env:Path;" + [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
 
 function Step([string] $name, [scriptblock] $action) {
     Write-Host "== $name" -ForegroundColor Cyan

@@ -1,10 +1,18 @@
-# Kontroly (verze, typy, testy). SPOUŠTÍ SE JEN RUČNĚ (Actions -> CI -> Run workflow),
-# protože repozitář je privátní a minuty Actions jsou omezené (Windows runner se počítá 2×).
-# Běžně stačí lokálně: pwsh .github/scripts/Verify-Local.ps1
+# Kontroly na serveru: shoda verzí, typy, build frontendu a testy.
+# Repozitář je veřejný, takže minuty Actions jsou zdarma. Totéž lze pustit lokálně:
+#   pwsh .github/scripts/Verify-Local.ps1
 name: CI
 
 on:
+  push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
+
+# Novější push ruší rozběhnutý starší běh téže větve.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
