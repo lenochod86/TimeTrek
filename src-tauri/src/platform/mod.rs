@@ -31,6 +31,8 @@ pub trait PlatformApi {
     fn foreground_window(&self) -> Option<WindowInfo>;
     /// Seconds since the last keyboard / mouse input.
     fn idle_seconds(&self) -> u64;
+    /// True while the workstation is locked (lock screen / secure desktop shown).
+    fn is_session_locked(&self) -> bool;
     /// Human readable application name (e.g. "Microsoft Edge").
     fn app_name(&self, exe: &str) -> String;
     /// Application icon as PNG bytes.

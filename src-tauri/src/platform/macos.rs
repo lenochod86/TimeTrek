@@ -15,6 +15,9 @@ impl PlatformApi for MacPlatform {
     fn idle_seconds(&self) -> u64 {
         0
     }
+    fn is_session_locked(&self) -> bool {
+        false
+    }
     fn app_name(&self, exe: &str) -> String {
         exe.to_string()
     }

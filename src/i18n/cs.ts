@@ -69,6 +69,10 @@ export const cs = {
   settingsGeneral: 'General',
   settingsAutostart: 'Spustit při startu',
   settingsAutostartHint: 'TimeTrek se po přihlášení spustí v systray a hned začne měřit.',
+  settingsIdle: 'Interval nečinnosti',
+  settingsIdleHint:
+    'Po této době bez klávesnice a myši se přestane měřit čas. Doba nečinnosti se z odpracovaného času odečte a v časové ose se zobrazí červeně (stejně jako zamčený počítač).',
+  minutesShort: 'min',
   aboutText: 'TimeTrek měří, kolik času trávíš v jakých aplikacích a na jakých webech.',
   aboutData: 'Data jsou uložena lokálně v',
   aboutVersion: 'Verze',

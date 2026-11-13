@@ -19,6 +19,9 @@ use windows::Win32::Storage::Xps::{PrintWindow, PRINT_WINDOW_FLAGS};
 use windows::Win32::System::Com::{
     CoCreateInstance, CoInitializeEx, CLSCTX_INPROC_SERVER, COINIT_MULTITHREADED,
 };
+use windows::Win32::System::StationsAndDesktops::{
+    CloseDesktop, OpenInputDesktop, DESKTOP_CONTROL_FLAGS, DESKTOP_SWITCHDESKTOP,
+};
 use windows::Win32::System::SystemInformation::GetTickCount;
 use windows::Win32::System::Threading::{
     OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
@@ -84,6 +87,20 @@ impl PlatformApi for WinPlatform {
                 (GetTickCount().wrapping_sub(lii.dwTime) / 1000) as u64
             } else {
                 0
+            }
+        }
+    }
+
+    fn is_session_locked(&self) -> bool {
+        // While the workstation is locked the input desktop is the secure
+        // "Winlogon" desktop, which an ordinary process cannot open.
+        unsafe {
+            match OpenInputDesktop(DESKTOP_CONTROL_FLAGS(0), false, DESKTOP_SWITCHDESKTOP) {
+                Ok(desktop) => {
+                    let _ = CloseDesktop(desktop);
+                    false
+                }
+                Err(_) => true,
             }
         }
     }

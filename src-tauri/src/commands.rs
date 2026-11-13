@@ -1,5 +1,6 @@
 //! Tauri commands called from the React UI.
 
+use crate::config;
 use crate::db;
 use crate::AppState;
 use base64::Engine;
@@ -335,6 +336,28 @@ pub fn delete_tag_range(state: State<AppState>, id: i64) -> CmdResult<()> {
     let conn = state.conn.lock().map_err(err)?;
     conn.execute("DELETE FROM tag_ranges WHERE id = ?1", [id]).map_err(err)?;
     Ok(())
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SettingsDto {
+    idle_timeout_minutes: u64,
+}
+
+#[tauri::command]
+pub fn get_settings(state: State<AppState>) -> CmdResult<SettingsDto> {
+    let cfg = state.config.read().map_err(err)?;
+    Ok(SettingsDto { idle_timeout_minutes: cfg.idle_timeout_secs / 60 })
+}
+
+/// Changes the inactivity interval; the running tracker picks it up on its next tick.
+#[tauri::command]
+pub fn set_idle_timeout_minutes(state: State<AppState>, minutes: u64) -> CmdResult<SettingsDto> {
+    let secs = (minutes * 60).clamp(config::MIN_IDLE_SECS, config::MAX_IDLE_SECS);
+    let mut cfg = state.config.write().map_err(err)?;
+    cfg.idle_timeout_secs = secs;
+    cfg.save(&state.data_dir);
+    Ok(SettingsDto { idle_timeout_minutes: secs / 60 })
 }
 
 #[derive(Serialize)]

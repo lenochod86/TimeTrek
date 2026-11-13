@@ -41,10 +41,23 @@ function Switch({ checked, onChange, disabled }: { checked: boolean; onChange: (
 
 export function SettingsDialog({ onClose }: { onClose: () => void }) {
   const [autostart, setAutostart] = useState<boolean | null>(null);
+  const [idleMin, setIdleMin] = useState<string>('');
 
   useEffect(() => {
     isEnabled().then(setAutostart).catch(() => setAutostart(false));
+    api.getSettings().then((s) => setIdleMin(String(s.idleTimeoutMinutes))).catch(() => {});
   }, []);
+
+  // Saved on blur / Enter; the backend clamps to 1-120 minutes and returns the stored value.
+  const commitIdle = async () => {
+    const n = Math.round(Number(idleMin));
+    if (!Number.isFinite(n) || n < 1) {
+      const s = await api.getSettings();
+      return setIdleMin(String(s.idleTimeoutMinutes));
+    }
+    const saved = await api.setIdleTimeoutMinutes(n);
+    setIdleMin(String(saved.idleTimeoutMinutes));
+  };
 
   const toggle = async (v: boolean) => {
     setAutostart(v);
@@ -70,6 +83,25 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
               <div className="hint">{t.settingsAutostartHint}</div>
             </div>
             <Switch checked={!!autostart} disabled={autostart === null} onChange={toggle} />
+          </div>
+          <div className="setting-row">
+            <div>
+              <div>{t.settingsIdle}</div>
+              <div className="hint">{t.settingsIdleHint}</div>
+            </div>
+            <span className="num-field">
+              <input
+                type="number"
+                min={1}
+                max={120}
+                value={idleMin}
+                disabled={idleMin === ''}
+                onChange={(e) => setIdleMin(e.target.value)}
+                onBlur={commitIdle}
+                onKeyDown={(e) => e.key === 'Enter' && (e.currentTarget as HTMLInputElement).blur()}
+              />
+              {t.minutesShort}
+            </span>
           </div>
         </div>
       </div>

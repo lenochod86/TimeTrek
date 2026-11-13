@@ -9,7 +9,7 @@ mod tray;
 
 use rusqlite::Connection;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex, RwLock};
 use tauri::{Manager, RunEvent, WindowEvent};
 use tauri_plugin_autostart::MacosLauncher;
 
@@ -17,6 +17,7 @@ use tauri_plugin_autostart::MacosLauncher;
 pub struct AppState {
     pub conn: Mutex<Connection>,
     pub data_dir: PathBuf,
+    pub config: config::SharedConfig,
 }
 
 pub fn run() {
@@ -34,11 +35,12 @@ pub fn run() {
             std::fs::create_dir_all(&data_dir)?;
             let db_path = data_dir.join("timetrek.db");
             let conn = db::open(&db_path)?;
-            let cfg = config::Config::load(&data_dir);
+            let cfg: config::SharedConfig =
+                Arc::new(RwLock::new(config::Config::load(&data_dir)));
 
-            let tracker = tracker::Tracker::start(data_dir.clone(), db_path, cfg);
+            let tracker = tracker::Tracker::start(data_dir.clone(), db_path, cfg.clone());
             app.manage(tracker);
-            app.manage(AppState { conn: Mutex::new(conn), data_dir });
+            app.manage(AppState { conn: Mutex::new(conn), data_dir, config: cfg });
 
             tray::create(app.handle())?;
 
@@ -66,6 +68,8 @@ pub fn run() {
             commands::add_tag_range,
             commands::delete_tag_range,
             commands::get_app_info,
+            commands::get_settings,
+            commands::set_idle_timeout_minutes,
         ])
         .build(tauri::generate_context!())
         .expect("error while building TimeTrek");

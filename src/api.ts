@@ -49,6 +49,10 @@ export interface AboutInfo {
   dataDir: string;
 }
 
+export interface Settings {
+  idleTimeoutMinutes: number;
+}
+
 export const KIND_ACTIVE = 0;
 export const KIND_IDLE = 1;
 
@@ -67,4 +71,6 @@ export const api = {
     invoke<void>('add_tag_range', { name, color, startMs, endMs }),
   deleteTagRange: (id: number) => invoke<void>('delete_tag_range', { id }),
   getAppInfo: () => invoke<AboutInfo>('get_app_info'),
+  getSettings: () => invoke<Settings>('get_settings'),
+  setIdleTimeoutMinutes: (minutes: number) => invoke<Settings>('set_idle_timeout_minutes', { minutes }),
 };

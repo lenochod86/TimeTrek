@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::path::Path;
+use std::sync::{Arc, RwLock};
 
 /// Tracker settings persisted in `settings.json` inside the data directory.
-/// The UI currently exposes only "start at login" (handled by the autostart
-/// plugin); the rest can be tuned by editing the file.
+/// The tracker re-reads them every second, so changes apply immediately.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Config {
@@ -17,6 +17,11 @@ pub struct Config {
     /// Screenshots older than this are deleted at startup.
     pub retention_days: i64,
 }
+
+pub type SharedConfig = Arc<RwLock<Config>>;
+
+pub const MIN_IDLE_SECS: u64 = 60;
+pub const MAX_IDLE_SECS: u64 = 120 * 60;
 
 impl Default for Config {
     fn default() -> Self {
@@ -34,15 +39,21 @@ impl Default for Config {
 impl Config {
     pub fn load(dir: &Path) -> Self {
         let path = dir.join("settings.json");
-        match std::fs::read_to_string(&path) {
+        let mut cfg = match std::fs::read_to_string(&path) {
             Ok(s) => serde_json::from_str(&s).unwrap_or_default(),
             Err(_) => {
                 let cfg = Self::default();
-                if let Ok(s) = serde_json::to_string_pretty(&cfg) {
-                    let _ = std::fs::write(&path, s);
-                }
+                cfg.save(dir);
                 cfg
             }
+        };
+        cfg.idle_timeout_secs = cfg.idle_timeout_secs.clamp(MIN_IDLE_SECS, MAX_IDLE_SECS);
+        cfg
+    }
+
+    pub fn save(&self, dir: &Path) {
+        if let Ok(s) = serde_json::to_string_pretty(self) {
+            let _ = std::fs::write(dir.join("settings.json"), s);
         }
     }
 }
