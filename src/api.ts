@@ -64,6 +64,8 @@ export const api = {
     invoke<Shot[]>('get_screenshots', { segmentId, fromMs: 0, toMs: 0 }),
   getRangeShots: (fromMs: number, toMs: number) =>
     invoke<Shot[]>('get_screenshots', { segmentId: null, fromMs, toMs }),
+  getPreviewShot: (segmentId: number) =>
+    invoke<{ id: number; exact: boolean } | null>('get_preview_shot', { segmentId }),
   getScreenshot: (id: number) => invoke<string | null>('get_screenshot', { id }),
   getSummaries: (days: { fromMs: number; toMs: number }[]) =>
     invoke<DaySummary[]>('get_summaries', { days }),

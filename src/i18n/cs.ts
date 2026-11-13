@@ -38,6 +38,7 @@ export const cs = {
   selected: 'Vybráno',
   noData: 'Pro tento den nejsou žádná data.',
   noShot: 'Pro tento úsek není snímek.',
+  previewApprox: 'Tento záznam je příliš krátký: zobrazen je nejbližší snímek stejné aplikace.',
   previewHint: 'F11 - Zamknout snímek, F12 - Prohlížeč snímků',
   previewLocked: 'Snímek je zamčen (F11 odemkne)',
   viewerTitle: 'Prohlížeč snímků',

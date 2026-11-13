@@ -146,7 +146,6 @@ pub struct Engine {
     floor: i64,
     last_step: i64,
     last_global_shot: i64,
-    own_pid: u32,
     cap_tx: Option<Sender<CaptureRequest>>,
     fav_tx: Option<Sender<String>>,
 }
@@ -167,7 +166,6 @@ impl Engine {
             floor: now,
             last_step: now,
             last_global_shot: 0,
-            own_pid: std::process::id(),
             cap_tx,
             fav_tx,
         }
@@ -284,14 +282,14 @@ impl Engine {
         }
 
         // Screenshots: shortly after a window comes up (but not more often than
-        // every 4 s overall, titles can change rapidly), then periodically.
+        // every 2 s overall, titles can change rapidly), then periodically.
         if let Some(c) = &mut self.cur {
             let due = if c.last_shot == 0 {
-                now - c.start >= 1_000 && now - self.last_global_shot >= 4_000
+                now - c.start >= 1_000 && now - self.last_global_shot >= 2_000
             } else {
                 now - c.last_shot >= (cfg.screenshot_interval_secs as i64) * 1000
             };
-            if cfg.screenshots_enabled && due && !c.private && w.pid != self.own_pid {
+            if cfg.screenshots_enabled && due && !c.private {
                 c.last_shot = now;
                 self.last_global_shot = now;
                 if let Some(tx) = &self.cap_tx {
@@ -453,7 +451,7 @@ mod tests {
     const S: i64 = 1000;
 
     fn editor() -> Option<WindowInfo> {
-        Some(WindowInfo { handle: 1, pid: 1, exe: "C:\\app\\editor.exe".into(), title: "doc".into() })
+        Some(WindowInfo { handle: 1, exe: "C:\\app\\editor.exe".into(), title: "doc".into() })
     }
 
     fn cfg() -> Config {
@@ -549,7 +547,7 @@ mod tests {
         let mut e = engine();
         run(&mut e, 1, 30, 30, false);
         for t in 31..=60 {
-            let lock = Some(WindowInfo { handle: 2, pid: 2, exe: "C:\\Windows\\SystemApps\\LockApp.exe".into(), title: "Lock".into() });
+            let lock = Some(WindowInfo { handle: 2, exe: "C:\\Windows\\SystemApps\\LockApp.exe".into(), title: "Lock".into() });
             e.step(&Fake, &cfg(), Input { now: T0 + t * S, idle_secs: 1, locked: false, fg: lock });
         }
         e.finish(T0 + 60 * S);

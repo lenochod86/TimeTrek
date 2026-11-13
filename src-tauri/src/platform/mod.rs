@@ -20,7 +20,6 @@ pub use self::macos::create;
 pub struct WindowInfo {
     /// Opaque native handle (HWND on Windows, window id on macOS).
     pub handle: isize,
-    pub pid: u32,
     /// Full path of the executable.
     pub exe: String,
     pub title: String,

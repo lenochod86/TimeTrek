@@ -64,6 +64,7 @@ pub fn run() {
             commands::get_favicons,
             commands::get_screenshots,
             commands::get_screenshot,
+            commands::get_preview_shot,
             commands::get_summaries,
             commands::add_tag_range,
             commands::delete_tag_range,

@@ -70,7 +70,6 @@ impl PlatformApi for WinPlatform {
             let exe = process_exe(pid).unwrap_or_default();
             Some(WindowInfo {
                 handle: h.0 as isize,
-                pid,
                 exe,
                 title,
             })
@@ -291,9 +290,15 @@ unsafe fn capture(h: HWND) -> Option<RgbaImage> {
     let printed = PrintWindow(h, dc, PRINT_WINDOW_FLAGS(2)).as_bool();
     let mut img = read_bitmap(dc, bmp, w, ht);
     if !printed || img.as_ref().map_or(true, is_blank) {
-        // Fallback: copy what is visible on screen (works for the foreground window).
-        let _ = BitBlt(dc, 0, 0, w, ht, screen, rc.left, rc.top, SRCCOPY);
-        img = read_bitmap(dc, bmp, w, ht);
+        // Fallback: copy what is visible on screen. That is the window's content only
+        // while it is the foreground window; otherwise we would photograph whatever
+        // lies on top of it (a snapshot of the wrong application), so give up.
+        if GetForegroundWindow() == h {
+            let _ = BitBlt(dc, 0, 0, w, ht, screen, rc.left, rc.top, SRCCOPY);
+            img = read_bitmap(dc, bmp, w, ht);
+        } else {
+            img = None;
+        }
     }
 
     SelectObject(dc, old);
