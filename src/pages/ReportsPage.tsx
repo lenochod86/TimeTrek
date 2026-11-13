@@ -118,7 +118,12 @@ export function ReportsPage() {
                     key={h}
                     className="heat-cell"
                     title={`${t.weekdays[wd]} ${h}:00 – ${Math.round(ms / 60000)} min`}
-                    style={{ background: ms > 0 ? `rgba(44, 255, 176, ${0.12 + 0.88 * Math.min(1, ms / Math.min(maxHeat, HOUR))})` : undefined }}
+                    style={{
+                      background:
+                        ms > 0
+                          ? `color-mix(in srgb, var(--accent) ${Math.round(12 + 88 * Math.min(1, ms / Math.min(maxHeat, HOUR)))}%, transparent)`
+                          : undefined,
+                    }}
                   />
                 ))}
               </div>

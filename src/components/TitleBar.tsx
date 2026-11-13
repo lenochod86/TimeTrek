@@ -1,7 +1,8 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import type { ReactNode } from 'react';
 import { t } from '../i18n';
-import { IconClose, IconDay, IconGear, IconInfo, IconMax, IconMin, IconReports, IconStats } from './Icons';
+import type { Theme } from '../theme';
+import { IconClose, IconDay, IconGear, IconInfo, IconMax, IconMin, IconMoon, IconReports, IconStats, IconSun } from './Icons';
 
 export type Tab = 'day' | 'stats' | 'reports';
 
@@ -10,11 +11,13 @@ interface Props {
   onTab: (t: Tab) => void;
   onSettings: () => void;
   onAbout: () => void;
+  theme: Theme;
+  onToggleTheme: () => void;
 }
 
 const win = () => getCurrentWindow();
 
-export function TitleBar({ tab, onTab, onSettings, onAbout }: Props) {
+export function TitleBar({ tab, onTab, onSettings, onAbout, theme, onToggleTheme }: Props) {
   const tabs: { id: Tab; label: string; icon: ReactNode }[] = [
     { id: 'day', label: t.tabDay, icon: <IconDay /> },
     { id: 'stats', label: t.tabStats, icon: <IconStats /> },
@@ -31,6 +34,13 @@ export function TitleBar({ tab, onTab, onSettings, onAbout }: Props) {
         ))}
       </nav>
       <div className="title-spacer" data-tauri-drag-region />
+      <button
+        className="icon-btn"
+        title={theme === 'dark' ? t.themeToLight : t.themeToDark}
+        onClick={onToggleTheme}
+      >
+        {theme === 'dark' ? <IconSun /> : <IconMoon />}
+      </button>
       <button className="icon-btn" title={t.settings} onClick={onSettings}>
         <IconGear />
       </button>

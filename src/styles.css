@@ -1,3 +1,4 @@
+/* Tmavý režim je výchozí; světlý se zapíná atributem data-theme="light" na <html>. */
 :root {
   --bg: #000;
   --panel: #161616;
@@ -7,11 +8,64 @@
   --muted: #8d8d8d;
   --accent: #2cffb0;
   --accent-2: #18a4ff;
+  --on-accent: #000;
+  --primary: #078a5a;
   --selected: #078a5a;
+  --selected-text: #fff;
   --danger: #d4180c;
+  --titlebar-line: #fff;
+  --hover: #222;
+  --hover-faint: #111;
+  --row-hover: #1f1f1f;
+  --input-bg: #000;
+  --input-border: #bbb;
+  --lane-bg: #000;
+  --label-bg: #0d0d0d;
+  --tick: #555;
+  --ov-fill: rgba(255, 255, 255, 0.14);
+  --ov-border: rgba(255, 255, 255, 0.5);
+  --pop-bg: #2b2b2b;
+  --pop-border: #4a4a4a;
+  --ph: #333;
+  --knob: #ddd;
+  --track: #101010;
+  --scroll: #3a3a3a;
+  --text-shadow: #000;
   color-scheme: dark;
   font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
   font-size: 13px;
+}
+:root[data-theme='light'] {
+  --bg: #f3f4f6;
+  --panel: #ffffff;
+  --panel-2: #e9ecf0;
+  --line: #d3d7dd;
+  --text: #1c1f24;
+  --muted: #646b75;
+  --accent: #00875f;
+  --accent-2: #1478c8;
+  --on-accent: #fff;
+  --selected: #bfe8d6;
+  --selected-text: #0a2a1f;
+  --titlebar-line: #c3c8cf;
+  --hover: #e1e5ea;
+  --hover-faint: #eceef2;
+  --row-hover: #eef0f4;
+  --input-bg: #fff;
+  --input-border: #8b929c;
+  --lane-bg: #fff;
+  --label-bg: #eceef2;
+  --tick: #9aa1ab;
+  --ov-fill: rgba(0, 0, 0, 0.08);
+  --ov-border: rgba(0, 0, 0, 0.4);
+  --pop-bg: #fff;
+  --pop-border: #bcc2ca;
+  --ph: #cfd3d9;
+  --knob: #7b828c;
+  --track: #e6e9ed;
+  --scroll: #c2c7ce;
+  --text-shadow: #fff;
+  color-scheme: light;
 }
 
 * {
@@ -78,7 +132,7 @@ code {
   display: flex;
   align-items: stretch;
   padding-left: 6px;
-  border-bottom: 1px solid #fff;
+  border-bottom: 1px solid var(--titlebar-line);
   gap: 2px;
 }
 .tabs {
@@ -96,7 +150,7 @@ code {
   color: var(--text);
 }
 .tab:hover {
-  background: #111;
+  background: var(--hover-faint);
 }
 .tab.active {
   color: var(--accent);
@@ -122,7 +176,7 @@ code {
   border-radius: 4px;
 }
 .icon-btn:hover:not(:disabled) {
-  background: #222;
+  background: var(--hover);
 }
 .icon-btn:disabled {
   opacity: 0.35;
@@ -139,7 +193,7 @@ code {
   background: #c42b1c;
 }
 .icon-btn.boxed {
-  border: 1px solid #bbb;
+  border: 1px solid var(--input-border);
   border-radius: 6px;
   height: 32px;
   width: 32px;
@@ -159,8 +213,8 @@ code {
 .date-input,
 .select {
   height: 32px;
-  background: #000;
-  border: 1px solid #bbb;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 6px;
   padding: 0 10px;
   color: var(--text);
@@ -176,21 +230,21 @@ code {
 .btn {
   height: 32px;
   padding: 0 14px;
-  background: #000;
-  border: 1px solid #bbb;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 6px;
   cursor: pointer;
 }
 .btn:hover:not(:disabled) {
-  background: #1a1a1a;
+  background: var(--hover);
 }
 .btn:disabled {
   opacity: 0.4;
   cursor: default;
 }
 .btn.primary {
-  background: var(--selected);
-  border-color: var(--selected);
+  background: var(--primary);
+  border-color: var(--primary);
 }
 .day-stat {
   font-size: 11px;
@@ -241,7 +295,7 @@ code {
   top: 16px;
   height: 4px;
   width: 1px;
-  background: #555;
+  background: var(--tick);
 }
 .tl-lanes {
   display: flex;
@@ -257,7 +311,7 @@ code {
   font-weight: 600;
   border: 1px solid var(--line);
   border-left: 0;
-  background: #0d0d0d;
+  background: var(--label-bg);
 }
 .tl-area {
   position: relative;
@@ -270,7 +324,7 @@ code {
   border-left: 0;
   box-sizing: content-box;
   margin-right: -1px;
-  background: #000;
+  background: var(--lane-bg);
 }
 .tl-lane.plain {
   cursor: grab;
@@ -308,16 +362,16 @@ code {
   position: absolute;
   top: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: var(--ov-fill);
+  border: 1px solid var(--ov-border);
   border-radius: 3px;
   pointer-events: none;
 }
 .tl-tip {
   position: fixed;
   z-index: 50;
-  background: #242424;
-  border: 1px solid #555;
+  background: var(--pop-bg);
+  border: 1px solid var(--pop-border);
   border-radius: 6px;
   padding: 6px 10px;
   max-width: 460px;
@@ -373,7 +427,7 @@ code {
   font-weight: 600;
 }
 .th:hover {
-  background: #2a2a2a;
+  background: var(--hover);
 }
 .cell-check {
   width: 34px;
@@ -392,7 +446,7 @@ code {
   width: 16px;
   height: 16px;
   border-radius: 4px;
-  background: #333;
+  background: var(--ph);
 }
 .c-title {
   flex: 1;
@@ -435,10 +489,11 @@ code {
   border-radius: 3px;
 }
 .row:hover {
-  background: #1f1f1f;
+  background: var(--row-hover);
 }
 .row.selected {
   background: var(--selected);
+  color: var(--selected-text);
 }
 .list-foot {
   flex: none;
@@ -451,9 +506,9 @@ input[type='checkbox'] {
   width: 16px;
   height: 16px;
   margin: 0;
-  border: 1px solid #bbb;
+  border: 1px solid var(--input-border);
   border-radius: 3px;
-  background: #000;
+  background: var(--input-bg);
   display: inline-grid;
   place-content: center;
   cursor: pointer;
@@ -466,7 +521,7 @@ input[type='checkbox']:checked::after {
   content: '';
   width: 8px;
   height: 4px;
-  border: solid #000;
+  border: solid var(--on-accent);
   border-width: 0 0 2px 2px;
   transform: rotate(-45deg) translate(1px, -1px);
 }
@@ -487,10 +542,11 @@ input[type='checkbox']:checked::after {
   cursor: pointer;
 }
 .rank-row:hover {
-  background: #1f1f1f;
+  background: var(--row-hover);
 }
 .rank-row.checked {
   background: var(--selected);
+  color: var(--selected-text);
 }
 .rank-name {
   flex: 1;
@@ -503,9 +559,9 @@ input[type='checkbox']:checked::after {
   position: relative;
   width: 80px;
   height: 17px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--input-border);
   border-radius: 3px;
-  background: #000;
+  background: var(--input-bg);
   flex: none;
   overflow: hidden;
 }
@@ -513,13 +569,17 @@ input[type='checkbox']:checked::after {
   position: absolute;
   inset: 0 auto 0 0;
 }
+/* Popisek s vlastním pozadím, aby byl čitelný na jakékoli barvě výplně i v obou režimech. */
 .bar-text {
   position: absolute;
-  left: 4px;
-  top: 0;
-  line-height: 15px;
+  left: 3px;
+  top: 1px;
+  line-height: 13px;
+  padding: 0 3px;
+  border-radius: 2px;
   font-size: 9px;
-  text-shadow: 0 0 3px #000;
+  color: var(--text);
+  background: color-mix(in srgb, var(--input-bg) 72%, transparent);
 }
 .rank-time {
   width: 62px;
@@ -538,8 +598,8 @@ input[type='checkbox']:checked::after {
 .preview {
   position: fixed;
   z-index: 60;
-  background: #2b2b2b;
-  border: 1px solid #4a4a4a;
+  background: var(--pop-bg);
+  border: 1px solid var(--pop-border);
   border-radius: 6px;
   padding: 8px;
   pointer-events: none;
@@ -567,7 +627,7 @@ input[type='checkbox']:checked::after {
 }
 .preview-img {
   background: #111;
-  border: 1px solid #555;
+  border: 1px solid var(--pop-border);
   min-height: 150px;
   display: flex;
   align-items: center;
@@ -586,7 +646,7 @@ input[type='checkbox']:checked::after {
   text-align: center;
   font-style: italic;
   font-size: 11px;
-  color: #cfcfcf;
+  color: var(--muted);
 }
 .viewer {
   display: flex;
@@ -636,7 +696,7 @@ input[type='checkbox']:checked::after {
   max-width: calc(100vw - 40px);
   max-height: calc(100vh - 40px);
   background: var(--panel);
-  border: 1px solid #444;
+  border: 1px solid var(--pop-border);
   border-radius: 10px;
   display: flex;
   flex-direction: column;
@@ -696,8 +756,8 @@ input[type='checkbox']:checked::after {
   width: 42px;
   height: 22px;
   border-radius: 11px;
-  border: 1px solid #aaa;
-  background: #000;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
   position: relative;
   cursor: pointer;
   flex: none;
@@ -709,12 +769,12 @@ input[type='checkbox']:checked::after {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #ddd;
+  background: var(--knob);
   transition: transform 0.15s;
 }
 .switch.on {
-  background: var(--selected);
-  border-color: var(--selected);
+  background: var(--primary);
+  border-color: var(--primary);
 }
 .switch.on span {
   transform: translateX(20px);
@@ -729,8 +789,8 @@ input[type='checkbox']:checked::after {
 .num-field input {
   width: 70px;
   height: 32px;
-  background: #000;
-  border: 1px solid #bbb;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 6px;
   padding: 0 8px;
   color: var(--text);
@@ -759,8 +819,8 @@ input[type='checkbox']:checked::after {
 }
 .tag-form input {
   height: 32px;
-  background: #000;
-  border: 1px solid #bbb;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 6px;
   padding: 0 10px;
   color: var(--text);
@@ -778,7 +838,7 @@ input[type='checkbox']:checked::after {
   cursor: pointer;
 }
 .swatch.on {
-  border-color: #fff;
+  border-color: var(--text);
 }
 .form-actions {
   display: flex;
@@ -787,17 +847,22 @@ input[type='checkbox']:checked::after {
 }
 
 /* ---------- statistics ---------- */
+/* Tabulka přes celou šířku okna; posuvník je u pravého okraje. */
 .table-panel {
   padding: 0;
   overflow: auto;
-  flex: none;
-  max-height: 100%;
-  align-self: flex-start;
-  min-width: 620px;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
 }
 .stats-table {
   border-collapse: collapse;
   width: 100%;
+  table-layout: fixed;
+}
+.stats-table th:nth-child(1),
+.stats-table th:nth-child(2) {
+  width: 20%;
 }
 .stats-table th {
   text-align: left;
@@ -818,9 +883,13 @@ input[type='checkbox']:checked::after {
 }
 .stats-table tr.total td {
   background: var(--selected);
+  color: var(--selected-text);
 }
 .stats-table tr.total td:first-child {
   border-radius: 6px 0 0 6px;
+}
+.stats-table tr.total td:last-child {
+  border-radius: 0 6px 6px 0;
 }
 
 /* ---------- reports ---------- */
@@ -888,7 +957,7 @@ input[type='checkbox']:checked::after {
 .hbar {
   flex: 1;
   height: 12px;
-  background: #0b0b0b;
+  background: var(--track);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -925,7 +994,7 @@ input[type='checkbox']:checked::after {
 .heat-cell {
   height: 22px;
   border-radius: 4px;
-  background: #101010;
+  background: var(--track);
 }
 
 ::-webkit-scrollbar {
@@ -933,7 +1002,7 @@ input[type='checkbox']:checked::after {
   height: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3a3a3a;
+  background: var(--scroll);
   border-radius: 5px;
 }
 ::-webkit-scrollbar-track {

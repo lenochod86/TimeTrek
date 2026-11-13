@@ -51,6 +51,7 @@ Repozitář je privátní a minuty Actions jsou omezené (uživatel je pro tento
 - Nikdy neblokuj smyčku trackeru: pomalá práce (snímky, stahování faviconů) běží na vlastním vlákně.
 - Soukromí: vše zůstává na počítači. Ukládej jen **doménu** webu, nikdy celou URL. Anonymní okna prohlížeče se neměří ani nefotí. Favicony stahuj přímo z navštíveného webu, nikdy přes službu třetí strany. Žádná telemetrie.
 - **Data jsou v `%AppData%\TimeTrek`** (`app.path().data_dir().join("TimeTrek")`). Generovaný odinstalátor Tauri maže jen složky podle identifikátoru, proto tuto složku při volbě „Delete the application data“ maže vlastní krok v `src-tauri/windows/hooks.nsh` (`installerHooks` v `tauri.conf.json`). Změníš-li název složky, změň ho i tam (`TT_DATA_DIRNAME`).
+- **Tmavý a světlý režim.** UI má přepínač (ikona slunce / měsíce v titulku; volba se ukládá do `localStorage`). Barvy v `src/styles.css` bere výhradně z proměnných `:root` (tmavé) a `:root[data-theme='light']` (světlé); nikdy nepiš pevnou barvu, která funguje jen na jednom pozadí. Vizuální změnu zkontroluj v **obou** režimech (přepínač můžeš v testu používat bez ptaní, na konci nech tmavý).
 - Čas se ukládá v milisekundách od epochy; hranice dne (lokální půlnoc) se počítají v UI.
 - Každé nové pravidlo měření má test v `tracker.rs`; každá oprava chyby má test, který chybu chytí.
 - Drž styl okolního kódu. Nastavení, která uživatel může měnit, patří do dialogu Nastavení (`src/components/Dialogs.tsx`) a uplatní se bez restartu.

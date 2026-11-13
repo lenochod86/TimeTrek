@@ -14,6 +14,7 @@ takže se později dá dohledat, co jsi dělal.
   (anonymní okna se neměří a nefotí)
 - záložky **Den** (timeline, seznam záznamů, žebříček aplikací, náhled snímku), **Statistika** a **Přehledy**
 - zavření okna = schování do systray; pravé tlačítko na ikonu → **Otevřít** / **Zavřít** (ukončí měření)
+- tmavý a světlý režim (přepínač ikonou slunce / měsíce v horní liště)
 - Nastavení → General → **Spustit při startu** a **Interval nečinnosti**
 
 ## Vývoj

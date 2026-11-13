@@ -5,6 +5,8 @@ export const cs = {
   tabReports: 'Přehledy',
   settings: 'Nastavení',
   about: 'O aplikaci',
+  themeToLight: 'Přepnout na světlý režim',
+  themeToDark: 'Přepnout na tmavý režim',
   minimize: 'Minimalizovat',
   maximize: 'Maximalizovat',
   close: 'Zavřít',
