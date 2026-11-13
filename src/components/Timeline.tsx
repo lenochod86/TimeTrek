@@ -8,6 +8,9 @@ import { IconTarget } from './Icons';
 
 const GUTTER = 126;
 const LANE_H = 50;
+// Pruh (canvas) má navíc 1px ohraničení nahoře a dole; popisek vlevo musí mít stejnou celkovou výšku,
+// jinak na sebe linky nenavazují.
+const LANE_BORDER = 2;
 const AXIS_H = 28;
 const OVERVIEW_H = 30;
 const USAGE_ACTIVE = '#4c9a1f';
@@ -175,7 +178,7 @@ export function Timeline(p: Props) {
       <div className="tl-lanes" onWheel={onWheel}>
         <div className="tl-labels" style={{ width: GUTTER }}>
           {[t.laneTags, t.laneUsage, t.laneApps, t.laneDocs].map((n) => (
-            <div key={n} className="tl-label" style={{ height: LANE_H }}>
+            <div key={n} className="tl-label" style={{ height: LANE_H + LANE_BORDER }}>
               {n}
             </div>
           ))}
