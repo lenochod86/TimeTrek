@@ -44,3 +44,7 @@ Data jsou v `%AppData%\TimeTrek` (`timetrek.db`, `screens/`, `settings.json`). P
 Pokročilé volby (interval snímků, retence…) jsou v `settings.json`.
 
 Architektura: viz [docs/architecture.md](docs/architecture.md). Instrukce pro Claude Code: [CLAUDE.md](CLAUDE.md).
+
+## Licence
+
+[MIT](LICENSE)
