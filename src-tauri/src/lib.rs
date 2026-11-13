@@ -31,7 +31,10 @@ pub fn run() {
             Some(vec!["--hidden"]),
         ))
         .setup(|app| {
-            let data_dir = app.path().data_dir()?.join("TimeTrek");
+            // %AppData%\com.timetrek.app: přesně tuto složku (a stejnojmennou v %LocalAppData%)
+            // maže odinstalátor při volbě "Delete the application data". Jiné umístění
+            // by po odinstalaci s vymazáním dat zůstalo na disku.
+            let data_dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&data_dir)?;
             let db_path = data_dir.join("timetrek.db");
             let conn = db::open(&db_path)?;

@@ -38,7 +38,9 @@ Repozitář je privátní a minuty GitHub Actions jsou omezené, proto se nic ne
 - `.github/workflows/release.yml`: sestaví instalátor a vydá release při pushi tagu `vX.Y.Z`, nebo ručně
   jako artefakt běhu
 
-Data jsou v `%AppData%\TimeTrek` (`timetrek.db`, `screens/`, `settings.json`).
+Data jsou v `%AppData%\com.timetrek.app` (`timetrek.db`, `screens/`, `settings.json`). Je to záměrně složka
+podle identifikátoru aplikace, kterou maže odinstalátor při volbě „Delete the application data“.
+(Verze 0.1.0 používala `%AppData%\TimeTrek`; ta se neodinstalovává a lze ji smazat ručně.)
 Pokročilé volby (interval snímků, retence…) jsou v `settings.json`.
 
 Architektura: viz [docs/architecture.md](docs/architecture.md). Instrukce pro Claude Code: [CLAUDE.md](CLAUDE.md).
