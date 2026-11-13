@@ -1,38 +1,34 @@
 # TimeTrek
 
-Automatic time tracker for Windows (prepared for a macOS port). It runs in the system tray,
-measures how long you work in which application (and on which website) and stores
-screenshots of the window, so you can later find out what you were doing.
+Automatický time tracker pro Windows (připravený na port na macOS). Běží na pozadí v systray,
+měří, kolik času trávíš v jakých aplikacích (a na jakých webech), a ukládá snímky okna,
+takže se později dá dohledat, co jsi dělal.
 
-## Features
+## Vlastnosti
 
-- tracks the active window once per second, including inactivity (after the configured
-  idle interval, 5 minutes by default, the time stops counting and is shown in red);
-  a locked screen is recorded as inactivity, sleep and power-off are not recorded at all
-- screenshots of the active window (when the window changes, then every 30 s)
-- for Edge/Chrome/Brave/Vivaldi/Opera the website domain is detected and the site favicon is shown
-  (private/incognito windows are neither recorded nor photographed)
-- tabs **Day** (timeline, list of records, application ranking, screenshot preview),
-  **Statistics** and **Reports**
-- closing the window hides it to the tray; right click on the tray icon -> **Otevřít** (open) /
-  **Zavřít** (quit, which stops the tracking)
-- Settings -> General -> **Spustit při startu** (start at login) and the **idle interval**
+- měření aktivního okna 1× za sekundu včetně nečinnosti (po nastaveném intervalu, výchozí 5 min,
+  se čas přestane počítat a zobrazí se červeně); zamčený počítač se zapíše jako nečinnost,
+  spánek a vypnutí se nezapisují vůbec
+- snímky aktivního okna (při změně okna a pak každých 30 s)
+- u Edge/Chrome/Brave/Vivaldi/Opera se rozpozná doména a zobrazí se favicon webu
+  (anonymní okna se neměří a nefotí)
+- záložky **Den** (timeline, seznam záznamů, žebříček aplikací, náhled snímku), **Statistika** a **Přehledy**
+- zavření okna = schování do systray; pravé tlačítko na ikonu → **Otevřít** / **Zavřít** (ukončí měření)
+- Nastavení → General → **Spustit při startu** a **Interval nečinnosti**
 
-The UI is in Czech.
+## Vývoj
 
-## Development
-
-Requirements: Node.js LTS, Rust (MSVC toolchain) and Visual Studio Build Tools (C++).
+Požadavky: Node.js LTS, Rust (MSVC toolchain) a Visual Studio Build Tools (C++).
 
 ```powershell
 npm install
-npm run tauri dev      # development mode
-npm run tauri build    # installer (NSIS) in src-tauri/target/release/bundle
-npm run icons          # regenerates the icons from assets/icon/timetrek.svg
+npm run tauri dev      # vývojový režim
+npm run tauri build    # instalátor (NSIS) v src-tauri/target/release/bundle
+npm run icons          # přegeneruje ikony z assets/icon/timetrek.svg
 cd src-tauri; cargo test
 ```
 
-Data is stored in `%AppData%\TimeTrek` (`timetrek.db`, `screens/`, `settings.json`).
-Advanced options (screenshot interval, retention, ...) are in `settings.json`.
+Data jsou v `%AppData%\TimeTrek` (`timetrek.db`, `screens/`, `settings.json`).
+Pokročilé volby (interval snímků, retence…) jsou v `settings.json`.
 
-Architecture: see [docs/architecture.md](docs/architecture.md). Instructions for Claude Code: [CLAUDE.md](CLAUDE.md).
+Architektura: viz [docs/architecture.md](docs/architecture.md). Instrukce pro Claude Code: [CLAUDE.md](CLAUDE.md).

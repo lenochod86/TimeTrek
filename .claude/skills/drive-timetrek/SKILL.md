@@ -1,20 +1,20 @@
 ---
 name: drive-timetrek
-description: Start the TimeTrek dev app and take a screenshot of its window to verify a UI or behavior change in the real app
+description: Spustí vývojovou aplikaci TimeTrek a vyfotí její okno, aby se změna UI nebo chování ověřila ve skutečné aplikaci
 ---
 
-# Drive TimeTrek
+# Ovládání TimeTrek
 
-1. Close any running TimeTrek (installed or dev); only one instance may run:
+1. Zavři běžící TimeTrek (nainstalovaný i vývojový); smí běžet jen jedna instance:
    `Get-Process timetrek -ErrorAction SilentlyContinue | Stop-Process -Force`
-2. Start the dev app in the background: `npm run tauri dev` (first start compiles for a few minutes; wait for `Running target\debug\timetrek.exe` in the output).
-3. Take a screenshot of the window:
+2. Spusť vývojovou aplikaci na pozadí: `npm run tauri dev` (první start se několik minut kompiluje; počkej na `Running target\debug\timetrek.exe` ve výstupu).
+3. Vyfoť okno:
    `pwsh .claude/skills/drive-timetrek/screenshot.ps1 -Out <scratchpad>\win.png`
-   and look at it with the Read tool. The script brings the window to the front first.
-4. To exercise tracking, switch to other windows (the app records the focused window); the Day tab refreshes every 3 seconds.
-5. When done, stop the dev app (`Stop-Process -Name timetrek`) and the `npm`/`node` dev server it started.
+   a podívej se na snímek nástrojem Read. Skript okno nejdřív přenese do popředí.
+4. Měření vyzkoušíš přepínáním do jiných oken (aplikace zapisuje aktivní okno); záložka Den se obnovuje každé 3 sekundy.
+5. Až skončíš, zastav vývojovou aplikaci (`Stop-Process -Name timetrek`) i vývojový server `npm`/`node`, který se spustil.
 
-Notes:
-- Windows may show a firewall prompt for Node.js (Vite dev server); it can be cancelled.
-- A window closed with the X is only hidden (tray); the screenshot script cannot show it. Restart the app instead.
-- Screenshots of the user's screen never go into the repository; save them to the scratchpad.
+Poznámky:
+- Windows může zobrazit dotaz firewallu pro Node.js (vývojový server Vite); lze dát Zrušit.
+- Okno zavřené křížkem je jen schované (tray) a skript ho nevyfotí. Aplikaci raději spusť znovu.
+- Snímky uživatelovy obrazovky nikdy nepatří do repozitáře; ukládej je do scratchpadu.
