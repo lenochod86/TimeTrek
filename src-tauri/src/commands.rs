@@ -202,20 +202,6 @@ pub fn get_screenshots(
     Ok(rows)
 }
 
-#[derive(Serialize)]
-pub struct PreviewDto {
-    id: i64,
-    /// `false` = nearest snapshot of the same application, not of this very record.
-    exact: bool,
-}
-
-#[tauri::command]
-pub fn get_preview_shot(state: State<AppState>, segment_id: i64) -> CmdResult<Option<PreviewDto>> {
-    let conn = state.conn.lock().map_err(err)?;
-    let shot = db::preview_shot(&conn, segment_id).map_err(err)?;
-    Ok(shot.map(|s| PreviewDto { id: s.id, exact: s.exact }))
-}
-
 #[tauri::command]
 pub fn get_screenshot(state: State<AppState>, id: i64) -> CmdResult<Option<String>> {
     let rel: Option<String> = {

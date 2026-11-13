@@ -581,12 +581,6 @@ input[type='checkbox']:checked::after {
   color: var(--muted);
   padding: 40px 0;
 }
-.preview-approx {
-  margin-top: 6px;
-  text-align: center;
-  font-size: 11px;
-  color: #e0b34a;
-}
 .preview-foot {
   margin-top: 8px;
   text-align: center;

@@ -146,6 +146,8 @@ pub struct Engine {
     floor: i64,
     last_step: i64,
     last_global_shot: i64,
+    /// Application of the most recent screenshot request.
+    last_shot_exe: String,
     cap_tx: Option<Sender<CaptureRequest>>,
     fav_tx: Option<Sender<String>>,
 }
@@ -166,6 +168,7 @@ impl Engine {
             floor: now,
             last_step: now,
             last_global_shot: 0,
+            last_shot_exe: String::new(),
             cap_tx,
             fav_tx,
         }
@@ -281,17 +284,20 @@ impl Engine {
             }
         }
 
-        // Screenshots: shortly after a window comes up (but not more often than
-        // every 2 s overall, titles can change rapidly), then periodically.
+        // Screenshots: IMMEDIATELY when the application changes (the same sample in
+        // which the new segment starts), then periodically. A title change inside the
+        // same application is photographed too, but at most every 2 s, because some
+        // apps change their title constantly.
         if let Some(c) = &mut self.cur {
             let due = if c.last_shot == 0 {
-                now - c.start >= 1_000 && now - self.last_global_shot >= 2_000
+                self.last_shot_exe != c.key.exe || now - self.last_global_shot >= 2_000
             } else {
                 now - c.last_shot >= (cfg.screenshot_interval_secs as i64) * 1000
             };
             if cfg.screenshots_enabled && due && !c.private {
                 c.last_shot = now;
                 self.last_global_shot = now;
+                self.last_shot_exe = c.key.exe.clone();
                 if let Some(tx) = &self.cap_tx {
                     let _ = tx.send(CaptureRequest { segment_id: c.id, handle: c.handle, ts: now });
                 }
@@ -492,6 +498,56 @@ mod tests {
     #[test]
     fn real_lock_probe_is_false_on_unlocked_desktop() {
         assert!(!platform::create().is_session_locked());
+    }
+
+    fn window(exe: &str, title: &str) -> Option<WindowInfo> {
+        Some(WindowInfo { handle: 1, exe: exe.into(), title: title.into() })
+    }
+
+    /// Screenshot requests as (segment id, time in seconds after T0), in order.
+    fn shot_requests(rx: &std::sync::mpsc::Receiver<CaptureRequest>) -> Vec<(i64, i64)> {
+        rx.try_iter().map(|r| (r.segment_id, (r.ts - T0) / S)).collect()
+    }
+
+    #[test]
+    fn screenshot_is_taken_in_the_same_sample_as_the_application_change() {
+        let (tx, rx) = std::sync::mpsc::channel();
+        let mut e = Engine::new(db::open_memory().unwrap(), T0, Some(tx), None);
+        let cfg = Config { screenshots_enabled: true, ..Config::default() };
+        let step = |e: &mut Engine, t: i64, w: Option<WindowInfo>| {
+            e.step(&Fake, &cfg, Input { now: T0 + t * S, idle_secs: 0, locked: false, fg: w });
+        };
+
+        step(&mut e, 1, window("a.exe", "doc")); // first window ever -> photographed at once
+        step(&mut e, 2, window("b.exe", "shell")); // application changed -> at once
+        step(&mut e, 3, window("a.exe", "doc")); // and back -> at once
+        let reqs = shot_requests(&rx);
+        assert_eq!(reqs.iter().map(|r| r.1).collect::<Vec<_>>(), vec![1, 2, 3], "{reqs:?}");
+        // each one belongs to its own, new segment
+        let ids: std::collections::HashSet<_> = reqs.iter().map(|r| r.0).collect();
+        assert_eq!(ids.len(), 3);
+    }
+
+    #[test]
+    fn title_flapping_in_one_application_is_throttled() {
+        let (tx, rx) = std::sync::mpsc::channel();
+        let mut e = Engine::new(db::open_memory().unwrap(), T0, Some(tx), None);
+        let cfg = Config { screenshots_enabled: true, ..Config::default() };
+        for t in 1..=6 {
+            let title = format!("title {t}");
+            e.step(&Fake, &cfg, Input { now: T0 + t * S, idle_secs: 0, locked: false, fg: window("a.exe", &title) });
+        }
+        let secs: Vec<i64> = shot_requests(&rx).iter().map(|r| r.1).collect();
+        assert_eq!(secs, vec![1, 3, 5], "at most one per 2 s inside one app");
+    }
+
+    #[test]
+    fn private_window_is_never_photographed() {
+        let (tx, rx) = std::sync::mpsc::channel();
+        let mut e = Engine::new(db::open_memory().unwrap(), T0, Some(tx), None);
+        let cfg = Config { screenshots_enabled: true, ..Config::default() };
+        e.step(&Fake, &cfg, Input { now: T0 + S, idle_secs: 0, locked: false, fg: window("C:\\x\\msedge.exe", "Tab - InPrivate - Edge") });
+        assert!(shot_requests(&rx).is_empty());
     }
 
     #[test]

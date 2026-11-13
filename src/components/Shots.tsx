@@ -20,21 +20,14 @@ interface PreviewProps {
 /** Hover popup with the screenshot that belongs to a list row. */
 export function ShotPreview({ segment, appName, icon, x, y, locked }: PreviewProps) {
   const [img, setImg] = useState<string | null | undefined>(undefined);
-  const [exact, setExact] = useState(true);
 
   useEffect(() => {
     let cancel = false;
     setImg(undefined);
-    // The backend only ever returns a snapshot of this record or, for very short
-    // records, the nearest one of the SAME application (exact = false).
+    // Jen snímek, který k tomuto záznamu opravdu patří; žádné náhradní snímky.
     api
-      .getPreviewShot(segment.id)
-      .then(async (p) => {
-        if (!p) return null;
-        const url = await loadShot(p.id);
-        if (!cancel) setExact(p.exact);
-        return url;
-      })
+      .getSegmentShots(segment.id)
+      .then(async (shots) => (shots.length ? loadShot(shots[Math.floor(shots.length / 2)].id) : null))
       .then((u) => !cancel && setImg(u ?? null))
       .catch(() => !cancel && setImg(null));
     return () => {
@@ -56,7 +49,6 @@ export function ShotPreview({ segment, appName, icon, x, y, locked }: PreviewPro
       <div className="preview-img">
         {img ? <img src={img} alt="" /> : <div className="preview-empty">{img === undefined ? '…' : t.noShot}</div>}
       </div>
-      {img && !exact && <div className="preview-approx">{t.previewApprox}</div>}
       <div className="preview-foot">{locked ? t.previewLocked : t.previewHint}</div>
     </div>
   );
