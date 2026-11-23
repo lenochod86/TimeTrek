@@ -146,6 +146,8 @@ fn px_range(start: i64, end: i64, view: View, w: u32) -> (i64, i64) {
 
 const SELECT_COLOR: [u8; 3] = [255, 255, 255];
 const DRAG_COLOR: [u8; 3] = [80, 220, 160];
+/// Průhlednost černého oddělovače mezi úseky.
+const SEPARATOR_ALPHA: f32 = 0.4;
 
 /// Vykreslí jeden pruh. `scale` je poměr fyzických pixelů k logickým (ohraničení výběru).
 pub fn render_lane(
@@ -159,12 +161,18 @@ pub fn render_lane(
 ) -> Bitmap {
     let mut bmp = Bitmap::new(w.max(1), h.max(1));
     let border = (2.0 * scale).round().max(1.0) as i64;
+    let sep = scale.round().max(1.0) as i64;
     for it in items {
         if it.end < view.start || it.start > view.end {
             continue;
         }
         let (x0, x1) = px_range(it.start, it.end, view, bmp.w);
         bmp.fill(x0, 0, x1, bmp.h as i64, it.color, 1.0);
+        // Jemný tmavý oddělovač na začátku úseku: bez něj by se sousední záznamy stejné barvy
+        // (např. změna titulku v téže aplikaci) slily a nebylo by vidět, kde začínají a končí.
+        if x1 - x0 >= 3 * sep {
+            bmp.fill(x0, 0, x0 + sep, bmp.h as i64, [0, 0, 0], SEPARATOR_ALPHA);
+        }
         if selected == Some(it.id) && x1 - x0 > 2 * border {
             bmp.frame(x0, 0, x1, bmp.h as i64, border, SELECT_COLOR);
         }
@@ -256,6 +264,21 @@ mod tests {
         let d = render_lane(&[], 100, 4, view, None, Some((40, 20)), 1.0);
         let dp = &d.rgba[((100 + 30) * 4) as usize..][..4];
         assert!(dp[3] > 0 && dp[3] < 255);
+    }
+
+    #[test]
+    fn adjacent_items_of_same_color_keep_a_visible_boundary() {
+        let view = View { start: 0, end: 100 };
+        let items = vec![item(1, 0, 50), item(2, 50, 100)];
+        let b = render_lane(&items, 100, 4, view, None, None, 1.0);
+        let px = |x: u32| &b.rgba[((2 * 100 + x) * 4) as usize..][..4];
+        assert_eq!(px(25), &[10, 20, 30, 255]); // uvnitř úseku plná barva
+        assert_eq!(px(50), &[6, 12, 18, 255]); // začátek druhého úseku je ztmavený
+        assert_eq!(px(0), &[6, 12, 18, 255]);
+        assert_eq!(px(51), &[10, 20, 30, 255]);
+        // Úsek užší než 3 px se neděli, ať z něj nezůstane jen čárka.
+        let b = render_lane(&[item(1, 10, 12)], 100, 4, view, None, None, 1.0);
+        assert_eq!(&b.rgba[((2 * 100 + 10) * 4) as usize..][..4], &[10, 20, 30, 255]);
     }
 
     #[test]
