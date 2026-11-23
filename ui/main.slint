@@ -1,7 +1,7 @@
 import { Palette } from "std-widgets.slint";
 import { Theme } from "theme.slint";
 import { T } from "texts.slint";
-import { Icons, IconPath, IconButton } from "widgets.slint";
+import { Icons, IconPath, IconButton, WindowButton } from "widgets.slint";
 import { Nav, Tip, Preview, TagDlg, Confirm, SettingsState, AboutState, UpdateState } from "state.slint";
 import { TtButton } from "widgets.slint";
 import { DayPage } from "day.slint";
@@ -35,7 +35,22 @@ component Tab inherits Rectangle {
     }
 }
 
+// Neviditelný proužek na okraji okna, za který se mění velikost.
+component ResizeEdge inherits Rectangle {
+    in property <int> dir;
+    in property <MouseCursor> cursor;
+    TouchArea {
+        mouse-cursor: root.cursor;
+        pointer-event(e) => {
+            if e.button == PointerEventButton.left && e.kind == PointerEventKind.down {
+                Nav.resize-window(root.dir);
+            }
+        }
+    }
+}
+
 export component MainWindow inherits Window {
+    no-frame: true;
     title: "TimeTrek";
     icon: @image-url("../assets/icon/timetrek-128.png");
     preferred-width: 1400px;
@@ -44,7 +59,10 @@ export component MainWindow inherits Window {
     min-height: 600px;
     background: Theme.bg;
     default-font-size: 13px;
-    default-font-family: "Segoe UI";
+    // Software renderer kreslí text bez ClearType a bez hintingu, takže je tenčí než v prohlížeči;
+    // střední váha to vyrovná (Segoe UI Variable Text má plynulou osu váhy, jako původní UI).
+    default-font-family: "Segoe UI Variable Text";
+    default-font-weight: 500;
 
     in-out property <bool> dark <=> Theme.dark;
     changed dark => { Palette.color-scheme = self.dark ? ColorScheme.dark : ColorScheme.light; }
@@ -72,12 +90,22 @@ export component MainWindow inherits Window {
                 height: 38px;
                 HorizontalLayout {
                     padding-left: 6px;
-                    padding-right: 6px;
                     spacing: 2px;
                     Tab { text: T.tab-day; icon: Icons.day; index: 0; }
                     Tab { text: T.tab-stats; icon: Icons.stats; index: 1; }
                     Tab { text: T.tab-reports; icon: Icons.reports; index: 2; }
-                    Rectangle { horizontal-stretch: 1; }
+                    // Volná část lišty: tažení okna, dvojklik maximalizuje.
+                    Rectangle {
+                        horizontal-stretch: 1;
+                        TouchArea {
+                            pointer-event(e) => {
+                                if e.button == PointerEventButton.left && e.kind == PointerEventKind.down {
+                                    Nav.drag-window();
+                                }
+                            }
+                            double-clicked => { Nav.toggle-maximize(); }
+                        }
+                    }
                     IconButton {
                         d: Theme.dark ? Icons.sun : Icons.moon;
                         clicked => { Nav.toggle-theme(); }
@@ -89,6 +117,13 @@ export component MainWindow inherits Window {
                         clicked => { Nav.show-settings(); }
                     }
                     IconButton { d: Icons.info; clicked => { Nav.show-about(); } }
+                    Rectangle {
+                        width: 13px;
+                        Rectangle { width: 1px; x: 6px; y: 9px; height: parent.height - 18px; background: Theme.line; }
+                    }
+                    WindowButton { d: Icons.minimize; clicked => { Nav.minimize-window(); } }
+                    WindowButton { d: Icons.maximize; clicked => { Nav.toggle-maximize(); } }
+                    WindowButton { d: Icons.close; danger: true; clicked => { Nav.close-window(); } }
                 }
                 Rectangle {
                     y: parent.height - 1px;
@@ -165,5 +200,22 @@ export component MainWindow inherits Window {
             font-size: 12px;
             wrap: word-wrap;
         }
+    }
+
+    // okraje pro změnu velikosti a jemný obrys okna (okno nemá systémový rám)
+    ResizeEdge { x: 0px; y: 0px; width: parent.width; height: 4px; dir: 0; cursor: MouseCursor.ns-resize; }
+    ResizeEdge { x: 0px; y: parent.height - 4px; width: parent.width; height: 4px; dir: 1; cursor: MouseCursor.ns-resize; }
+    ResizeEdge { x: 0px; y: 0px; width: 4px; height: parent.height; dir: 2; cursor: MouseCursor.ew-resize; }
+    ResizeEdge { x: parent.width - 4px; y: 0px; width: 4px; height: parent.height; dir: 3; cursor: MouseCursor.ew-resize; }
+    ResizeEdge { x: 0px; y: 0px; width: 10px; height: 10px; dir: 4; cursor: MouseCursor.nwse-resize; }
+    ResizeEdge { x: parent.width - 10px; y: 0px; width: 10px; height: 10px; dir: 5; cursor: MouseCursor.nesw-resize; }
+    ResizeEdge { x: 0px; y: parent.height - 10px; width: 10px; height: 10px; dir: 6; cursor: MouseCursor.nesw-resize; }
+    ResizeEdge { x: parent.width - 10px; y: parent.height - 10px; width: 10px; height: 10px; dir: 7; cursor: MouseCursor.nwse-resize; }
+    Rectangle {
+        width: 100%;
+        height: 100%;
+        border-width: 1px;
+        border-color: Theme.dark ? #3a3a3a : #b8bec6;
+        background: transparent;
     }
 }

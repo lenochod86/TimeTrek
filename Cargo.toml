@@ -1,6 +1,6 @@
 [package]
 name = "timetrek"
-version = "0.2.0"
+version = "0.2.1"
 description = "TimeTrek - automatic time tracker"
 default-run = "timetrek"
 license = "MIT"

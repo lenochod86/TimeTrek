@@ -36,6 +36,13 @@ export global Nav {
     // 0 = den, 1 = statistika, 2 = přehledy
     in-out property <int> tab: 0;
     callback tab-changed(int);
+    // Okno je bez systémového záhlaví: tažení, změna velikosti a tlačítka řeší Rust (winit).
+    callback drag-window();
+    // 0 sever, 1 jih, 2 západ, 3 východ, 4 SZ, 5 SV, 6 JZ, 7 JV
+    callback resize-window(int);
+    callback minimize-window();
+    callback toggle-maximize();
+    callback close-window();
     callback toggle-theme();
     callback show-settings();
     callback show-about();

@@ -50,8 +50,13 @@ spuštění aplikace) okno vytvoří znovu. Při startu s `--hidden` (autostart)
   `tray-icon` ve stejné smyčce a události přeposílá přes `slint::invoke_from_event_loop`.
 - Rozhraní se kreslí software rendererem (`renderer-software`, systémová písma). Pruhy časové osy kreslí Rust
   přímo do bitmapy (`ui/timeline.rs`); tisíce obdélníků jako prvků UI by byly pomalé a paměťově drahé.
-- Vlastní záhlaví okna z Tauri verze (tažení, minimalizace, maximalizace) se nepřenášelo; okno má standardní
-  rám systému (méně kódu a rizika). Záložky, přepínač motivu, nastavení a o aplikaci jsou v liště pod rámem.
+- Okno je bez systémového rámu (`no-frame`), jako v Tauri verzi: záložky, motiv, nastavení, o aplikaci a tlačítka
+  okna jsou v jedné liště (`ui/main.slint`). Tažení okna, změnu velikosti (proužky na okrajích) a maximalizaci
+  řeší Rust přes winit (`Ctl::drag_window` a spol. v `ui/mod.rs`), zavření projde stejným zpětným voláním jako
+  křížek v rámu.
+- Písmo: software renderer Slintu kreslí text jako šedotónový obrys bez hintingu a bez ClearType, takže je tenčí
+  než ve WebView2. Vyrovnává to váha 500 ve variabilním písmu Segoe UI Variable Text (`default-font-weight`).
+  Kdyby to nestačilo, zbývá renderer Skia (kvalitnější text, ale větší binárka i paměť).
 - Obrázky snímků se čtou z disku na požádání a drží se jen aktuální (žádná mezipaměť dekódovaných snímků).
 - Motiv (tmavý / světlý) je v `ui/theme.slint` (globál `Theme`) a ukládá se do `settings.json` (`light_theme`).
 - Texty UI jsou v `ui/texts.slint`, texty skládané v Rustu (tray, dny v týdnu, období) v `src/i18n.rs`.

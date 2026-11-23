@@ -15,6 +15,8 @@ export global Icons {
     out property <string> sort-asc: "M3 10l5-5 5 5";
     out property <string> sort-desc: "M3 6l5 5 5-5";
     out property <string> check: "M3.5 8.5l3 3 6-7";
+    out property <string> minimize: "M3 8h10";
+    out property <string> maximize: "M4.5 3.5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z";
     // Ozubené kolečko (obrys z ikonové sady Feather, licence MIT), mřížka 24x24.
     out property <string> gear: "M12 9a3 3 0 1 0 0 6 3 3 0 1 0 0-6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z";
 }
@@ -35,6 +37,20 @@ export component IconPath inherits Path {
     stroke-width: thickness;
     stroke-line-cap: LineCap.round;
     stroke-line-join: LineJoin.round;
+}
+
+// Tlačítko v pravém horním rohu okna (minimalizace, maximalizace, zavření).
+export component WindowButton inherits Rectangle {
+    in property <string> d;
+    in property <bool> danger: false;
+    callback clicked();
+    width: 46px;
+    background: ta.has-hover ? (danger ? #c42b1c : Theme.hover) : transparent;
+    ta := TouchArea { clicked => { root.clicked(); } }
+    IconPath {
+        d: root.d;
+        tint: root.danger && ta.has-hover ? #ffffff : Theme.text;
+    }
 }
 
 // Textové tlačítko.

@@ -171,6 +171,11 @@ impl Ctl {
         let nav = ui.global::<Nav>();
         on!(ctl, nav, on_toggle_theme, |c| c.toggle_theme());
         on!(ctl, nav, on_tab_changed, |c, tab| c.tab_changed(tab));
+        on!(ctl, nav, on_drag_window, |c| c.drag_window());
+        on!(ctl, nav, on_resize_window, |c, dir| c.resize_window(dir));
+        on!(ctl, nav, on_minimize_window, |c| c.win().window().set_minimized(true));
+        on!(ctl, nav, on_toggle_maximize, |c| c.toggle_maximize());
+        on!(ctl, nav, on_close_window, |c| c.close_window());
     }
 
     fn toggle_theme(&self) {
@@ -182,6 +187,43 @@ impl Ctl {
             cfg.save(&self.env.data_dir);
         }
         // Bitmapy pruhů se kreslí bez pozadí, takže přebarvení motivu je nepotřebuje.
+    }
+
+    // --- okno bez systémového rámu -------------------------------------------------------------
+
+    fn drag_window(&self) {
+        use slint::winit_030::WinitWindowAccessor;
+        self.win().window().with_winit_window(|w| {
+            let _ = w.drag_window();
+        });
+    }
+
+    fn resize_window(&self, dir: i32) {
+        use slint::winit_030::{winit::window::ResizeDirection as D, WinitWindowAccessor};
+        let dir = match dir {
+            0 => D::North,
+            1 => D::South,
+            2 => D::West,
+            3 => D::East,
+            4 => D::NorthWest,
+            5 => D::NorthEast,
+            6 => D::SouthWest,
+            _ => D::SouthEast,
+        };
+        self.win().window().with_winit_window(|w| {
+            let _ = w.drag_resize_window(dir);
+        });
+    }
+
+    fn toggle_maximize(&self) {
+        let ui = self.win();
+        let w = ui.window();
+        w.set_maximized(!w.is_maximized());
+    }
+
+    /// Zavření jako křížkem v systémovém rámu: projde stejným zpětným voláním (`app::App::show`).
+    fn close_window(&self) {
+        self.win().window().dispatch_event(slint::platform::WindowEvent::CloseRequested);
     }
 
     fn tab_changed(&self, tab: i32) {
