@@ -4,7 +4,9 @@
 //! jen jádro v Rustu. Otevření z tray okno vytvoří znovu.
 
 use crate::ui::{Ctl, Env, MainWindow};
-use crate::{config, db, single_instance, tracker};
+use crate::{config, db, single_instance, tracker, updates};
+#[cfg(any(windows, target_os = "macos"))]
+use crate::i18n;
 use slint::{CloseRequestResponse, ComponentHandle};
 use slint::winit_030::WinitWindowAccessor;
 use std::cell::RefCell;
@@ -20,6 +22,8 @@ struct Open {
 struct App {
     env: Env,
     open: RefCell<Option<Open>>,
+    #[cfg(any(windows, target_os = "macos"))]
+    tray: RefCell<Option<tray_icon::TrayIcon>>,
 }
 
 thread_local! {
@@ -72,6 +76,22 @@ impl App {
         *self.open.borrow_mut() = Some(Open { win, _ctl: ctl });
     }
 
+    /// Změnil se stav kontroly aktualizací: překreslí banner a upraví nápovědu u ikony v systray.
+    fn update_changed(&self) {
+        if let Some(o) = self.open.borrow().as_ref() {
+            o._ctl.push_update();
+        }
+        #[cfg(any(windows, target_os = "macos"))]
+        if let Some(t) = self.tray.borrow().as_ref() {
+            let snap = self.env.updater.snapshot();
+            let tip = match (snap.offer, snap.release) {
+                (true, Some(r)) => i18n::update_tray_tooltip(&r.version),
+                _ => i18n::TRAY_TOOLTIP.to_string(),
+            };
+            let _ = t.set_tooltip(Some(tip));
+        }
+    }
+
     fn close(&self) {
         self.open.borrow_mut().take();
         // Bez ikony v systray by se zavřením okna nedalo aplikaci znovu otevřít ani ukončit.
@@ -101,22 +121,28 @@ pub fn run() {
     let cfg: config::SharedConfig = Arc::new(RwLock::new(config::Config::load(&data_dir)));
     let tracker = tracker::Tracker::start(data_dir.clone(), db_path.clone(), cfg.clone());
 
-    let env = Env {
-        data_dir,
-        db_path,
-        config: cfg,
-        version: env!("CARGO_PKG_VERSION").to_string(),
-        autostart: true,
-    };
-    let app = Rc::new(App { env, open: RefCell::new(None) });
+    let version = env!("CARGO_PKG_VERSION").to_string();
+    let updater = Arc::new(updates::Updater::start(cfg.clone(), data_dir.clone(), version.clone(), || {
+        with_app(|a| a.update_changed())
+    }));
+    let env = Env { data_dir, db_path, config: cfg, version, updater: updater.clone(), autostart: true };
+    let app = Rc::new(App {
+        env,
+        open: RefCell::new(None),
+        #[cfg(any(windows, target_os = "macos"))]
+        tray: RefCell::new(None),
+    });
     APP.with(|a| *a.borrow_mut() = Some(app.clone()));
 
     #[cfg(any(windows, target_os = "macos"))]
-    let _tray = crate::tray::create(|| with_app(|a| a.show()), || {
-        let _ = slint::quit_event_loop();
-    })
-    .map_err(|e| log::error!("ikona v systray: {e}"))
-    .ok();
+    {
+        let tray = crate::tray::create(|| with_app(|a| a.show()), || {
+            let _ = slint::quit_event_loop();
+        })
+        .map_err(|e| log::error!("ikona v systray: {e}"))
+        .ok();
+        *app.tray.borrow_mut() = tray;
+    }
 
     // Při startu s `--hidden` (autostart) zůstane aplikace jen v systray.
     if !hidden || !cfg!(any(windows, target_os = "macos")) {
@@ -128,6 +154,9 @@ pub fn run() {
     // Zavření z tray: otevřený záznam se uzavře přesně v okamžiku ukončení.
     app.close_all();
     tracker.shutdown();
+    updater.shutdown();
+    // Stažený instalátor se spouští až teď, když je měření uložené.
+    updates::launch_pending_installer();
 }
 
 impl App {

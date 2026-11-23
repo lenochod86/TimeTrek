@@ -45,4 +45,6 @@ pub trait PlatformApi {
     fn browser_address(&self, window: &WindowInfo) -> Option<String>;
     /// Grabs the content of a single window.
     fn capture_window(&self, handle: isize) -> Option<RgbaImage>;
+    /// Otevře webovou adresu ve výchozím prohlížeči.
+    fn open_url(&self, url: &str);
 }

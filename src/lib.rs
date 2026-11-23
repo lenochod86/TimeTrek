@@ -9,6 +9,7 @@ pub mod i18n;
 pub mod platform;
 pub mod single_instance;
 mod tracker;
+pub mod updates;
 #[cfg(any(windows, target_os = "macos"))]
 mod tray;
 pub mod ui;

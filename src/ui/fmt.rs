@@ -104,6 +104,19 @@ pub fn fmt_minutes_of_day(min: f64) -> String {
     format!("{}:{:02}", m / 60, m % 60)
 }
 
+/// Mřížka kalendáře 6×7 (týden od pondělí): čísla dnů, 0 = prázdné políčko.
+pub fn month_grid(year: i32, month: u32) -> Vec<i32> {
+    let mut out = vec![0; 42];
+    let Some(first) = NaiveDate::from_ymd_opt(year, month, 1) else { return out };
+    let lead = weekday_index(first);
+    let mut d = first;
+    while d.month() == month && lead + (d.day() as usize) <= 42 {
+        out[lead + d.day() as usize - 1] = d.day() as i32;
+        d += Duration::days(1);
+    }
+    out
+}
+
 /// Pondělí = 0.
 pub fn weekday_index(d: NaiveDate) -> usize {
     d.weekday().num_days_from_monday() as usize
@@ -151,6 +164,26 @@ mod tests {
         assert_eq!(parse_date("abc"), None);
         assert_eq!(fmt_date(d), "05.03.2026");
         assert_eq!(parse_date(&fmt_date(d)), Some(d));
+    }
+
+    #[test]
+    fn month_grid_starts_on_monday() {
+        // Listopad 2026 začíná v neděli: šest prázdných políček, pak 1..30.
+        let g = month_grid(2026, 11);
+        assert_eq!(g.len(), 42);
+        assert_eq!(&g[..7], &[0, 0, 0, 0, 0, 0, 1]);
+        assert_eq!(g[6 + 29], 30);
+        assert_eq!(g[6 + 30], 0);
+        // Únor 2028 (přestupný) začíná v úterý a má 29 dní.
+        let g = month_grid(2028, 2);
+        assert_eq!(g[0], 0);
+        assert_eq!(g[1], 1);
+        assert_eq!(g.iter().filter(|d| **d > 0).count(), 29);
+        // Měsíc začínající v pondělí a s 31 dny se vejde.
+        let g = month_grid(2026, 6);
+        assert_eq!(g[0], 1);
+        assert_eq!(g.iter().max(), Some(&30));
+        assert!(month_grid(2026, 13).iter().all(|d| *d == 0));
     }
 
     #[test]

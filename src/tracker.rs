@@ -451,6 +451,7 @@ mod tests {
         fn capture_window(&self, _: isize) -> Option<image::RgbaImage> {
             None
         }
+        fn open_url(&self, _: &str) {}
     }
 
     const T0: i64 = 1_000_000_000_000;

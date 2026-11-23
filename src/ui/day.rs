@@ -3,7 +3,7 @@
 use super::colors::{color_for, parse_hex};
 use super::fmt::*;
 use super::timeline::{self, LaneItem, View};
-use super::{rgba_image, slint_color, ChipD, Ctl, DayState, MainWindow, RankD, RowD, TagLabelD, TickD, Tip};
+use super::{rgba_image, slint_color, ymd, ChipD, Ctl, DayState, MainWindow, RankD, RowD, TagLabelD, TickD, Tip};
 use crate::data::{self, RangeData, Segment};
 use crate::db::KIND_ACTIVE;
 use crate::i18n;
@@ -406,6 +406,7 @@ impl Ctl {
         if g.get_date_text() != text.as_str() {
             g.set_date_text(text.into());
         }
+        g.set_date_ymd(ymd(d.date));
         g.set_is_today(d.is_today());
         match d.day_info() {
             Some((s, e)) => {

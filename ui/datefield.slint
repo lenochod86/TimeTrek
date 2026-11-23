@@ -1,0 +1,136 @@
+import { LineEdit } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { T } from "texts.slint";
+import { Icons, IconButton, TtButton } from "widgets.slint";
+import { DateD, Calendar } from "state.slint";
+
+// Pole s datem (D.M.RRRR, potvrzuje se Enterem) a tlačítko s kalendářem.
+export component DateField inherits HorizontalLayout {
+    in-out property <string> text;
+    in property <DateD> ymd;
+    // Text ve tvaru D.M.RRRR (vybraný z kalendáře i napsaný).
+    callback edited(string);
+    // Zobrazený měsíc v kalendáři.
+    property <int> view-year: 2026;
+    property <int> view-month: 1;
+    spacing: 4px;
+    LineEdit {
+        width: 118px;
+        text <=> root.text;
+        accepted(t) => { root.edited(t); }
+    }
+    IconButton {
+        boxed: true;
+        d: Icons.day;
+        clicked => {
+            root.view-year = root.ymd.year;
+            root.view-month = root.ymd.month;
+            picker.show();
+        }
+    }
+    picker := PopupWindow {
+        x: 0px;
+        y: 38px;
+        width: 7 * 36px + 24px;
+        height: 36px + 24px + 7 * 34px + 40px;
+        Rectangle {
+            background: Theme.pop-bg;
+            border-width: 1px;
+            border-color: Theme.pop-border;
+            border-radius: 8px;
+            TouchArea { }
+            VerticalLayout {
+                padding: 12px;
+                spacing: 0px;
+                HorizontalLayout {
+                    height: 36px;
+                    IconButton {
+                        d: Icons.chev-left;
+                        clicked => {
+                            if root.view-month == 1 {
+                                root.view-month = 12;
+                                root.view-year -= 1;
+                            } else {
+                                root.view-month -= 1;
+                            }
+                        }
+                    }
+                    Text {
+                        horizontal-stretch: 1;
+                        text: Calendar.months[root.view-month - 1] + " " + root.view-year;
+                        font-weight: 600;
+                        color: Theme.text;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    IconButton {
+                        d: Icons.chev-right;
+                        clicked => {
+                            if root.view-month == 12 {
+                                root.view-month = 1;
+                                root.view-year += 1;
+                            } else {
+                                root.view-month += 1;
+                            }
+                        }
+                    }
+                }
+                HorizontalLayout {
+                    height: 30px;
+                    for wd in Calendar.weekdays: Text {
+                        text: wd;
+                        color: Theme.muted;
+                        font-size: 12px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+                for week in 6: HorizontalLayout {
+                    height: 34px;
+                    for col in 7: Rectangle {
+                        property <int> day: Calendar.grid(root.view-year, root.view-month)[week * 7 + col];
+                        property <bool> selected: day == root.ymd.day && root.view-month == root.ymd.month && root.view-year == root.ymd.year;
+                        property <bool> is-today: day == Calendar.today.day && root.view-month == Calendar.today.month && root.view-year == Calendar.today.year;
+                        width: 36px;
+                        height: 34px;
+                        Rectangle {
+                            width: 30px;
+                            height: 30px;
+                            border-radius: 15px;
+                            background: selected ? Theme.accent : (ta.has-hover && day > 0 ? Theme.hover : transparent);
+                            border-width: is-today && !selected ? 1px : 0px;
+                            border-color: Theme.accent;
+                            Text {
+                                text: day > 0 ? day : "";
+                                color: selected ? Theme.on-accent : Theme.text;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                        ta := TouchArea {
+                            enabled: day > 0;
+                            mouse-cursor: pointer;
+                            clicked => {
+                                root.edited(day + "." + root.view-month + "." + root.view-year);
+                                picker.close();
+                            }
+                        }
+                    }
+                }
+                HorizontalLayout {
+                    height: 40px;
+                    padding-top: 8px;
+                    alignment: end;
+                    TtButton {
+                        height: 28px;
+                        text: T.today;
+                        clicked => {
+                            root.edited(Calendar.today.day + "." + Calendar.today.month + "." + Calendar.today.year);
+                            picker.close();
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

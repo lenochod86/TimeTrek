@@ -1,5 +1,6 @@
 // Rozhraní mezi Rustem a UI: Rust do těchto globálů zapisuje data a Slint volá zpětná volání.
 
+export struct DateD { year: int, month: int, day: int }
 export struct TickD { frac: float, label: string, major: bool }
 export struct TagLabelD { left: float, width: float, text: string }
 export struct RowD {
@@ -48,6 +49,7 @@ export global Tip {
 
 export global DayState {
     in-out property <string> date-text;
+    in property <DateD> date-ymd;
     in property <bool> is-today;
     in property <string> day-start;
     in property <string> day-end;
@@ -176,6 +178,8 @@ export global AboutState {
 export global RangeState {
     in-out property <string> from-text;
     in-out property <string> to-text;
+    in property <DateD> from-ymd;
+    in property <DateD> to-ymd;
     in property <[string]> preset-labels;
     in-out property <int> preset-index;
     in property <string> hint;
@@ -198,4 +202,32 @@ export global ReportsState {
     in property <[BarRowD]> sites;
     in property <[HeatD]> heat;
     in property <[string]> weekdays;
+}
+
+export global UpdateState {
+    // Nabídka nové verze (banner nad obsahem).
+    in property <bool> offer;
+    in property <string> text;
+    in property <string> download-label;
+    // Probíhá stahování; `progress` je text průběhu nebo chyby.
+    in property <bool> busy;
+    in property <string> progress;
+    // Nastavení: automatická kontrola, stav poslední kontroly.
+    in-out property <bool> check-enabled: true;
+    in property <string> status;
+    in property <bool> checking;
+    callback download();
+    callback snooze();
+    callback skip();
+    callback check-toggled(bool);
+    callback check-now();
+}
+
+// Data pro výběr data z kalendáře.
+export global Calendar {
+    in property <DateD> today;
+    in property <[string]> months;
+    in property <[string]> weekdays;
+    // Čísla dnů měsíce v mřížce 6×7 od pondělí (0 = prázdné políčko).
+    pure callback grid(int, int) -> [int];
 }

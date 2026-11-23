@@ -18,6 +18,14 @@ pub struct Config {
     pub retention_days: i64,
     /// Světlý režim UI (výchozí je tmavý).
     pub light_theme: bool,
+    /// Automatická kontrola nové verze na GitHubu (po spuštění a pak nejvýš 1× za den).
+    pub update_check: bool,
+    /// Kdy naposledy kontrola doběhla (ms od epochy).
+    pub last_update_check_ms: i64,
+    /// Verze, kterou uživatel přeskočil (nabídne se až novější).
+    pub skipped_version: String,
+    /// Do kdy je nabídka odložená (ms od epochy).
+    pub update_snooze_until_ms: i64,
 }
 
 pub type SharedConfig = Arc<RwLock<Config>>;
@@ -35,6 +43,10 @@ impl Default for Config {
             jpeg_quality: 70,
             retention_days: 60,
             light_theme: false,
+            update_check: true,
+            last_update_check_ms: 0,
+            skipped_version: String::new(),
+            update_snooze_until_ms: 0,
         }
     }
 }

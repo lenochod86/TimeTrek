@@ -5,7 +5,7 @@
 
 use crate::config::SharedConfig;
 use rusqlite::Connection;
-use slint::{ComponentHandle, Image, Rgba8Pixel, SharedPixelBuffer, Timer, TimerMode, Weak};
+use slint::{ComponentHandle, Image, ModelRc, VecModel, Rgba8Pixel, SharedPixelBuffer, Timer, TimerMode, Weak};
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -19,6 +19,7 @@ pub mod fmt;
 mod preview;
 mod range;
 pub mod timeline;
+mod update;
 
 slint::include_modules!();
 
@@ -29,6 +30,7 @@ pub struct Env {
     pub db_path: PathBuf,
     pub config: SharedConfig,
     pub version: String,
+    pub updater: std::sync::Arc<crate::updates::Updater>,
     /// Zapíná se změna spuštění po přihlášení (v náhledu bez dotyku na systém vypnuto).
     pub autostart: bool,
 }
@@ -89,6 +91,12 @@ pub fn decode_image(bytes: &[u8]) -> Option<Image> {
     Some(rgba_image(img.width(), img.height(), img.as_raw()))
 }
 
+/// Datum pro výběr z kalendáře.
+pub fn ymd(d: chrono::NaiveDate) -> DateD {
+    use chrono::Datelike;
+    DateD { year: d.year(), month: d.month() as i32, day: d.day() as i32 }
+}
+
 pub fn slint_color(c: [u8; 3]) -> slint::Color {
     slint::Color::from_rgb_u8(c[0], c[1], c[2])
 }
@@ -119,6 +127,8 @@ impl Ctl {
         ctl.bind_preview(ui);
         ctl.bind_range(ui);
         ctl.bind_dialogs(ui);
+        ctl.bind_update(ui);
+        ctl.init_calendar(ui);
 
         ctl.init_day();
         ctl.init_range(ui);
@@ -140,6 +150,16 @@ impl Ctl {
             }
         });
         Ok(ctl)
+    }
+
+    /// České názvy měsíců a dnů, dnešek a mřížka dnů pro výběr data.
+    fn init_calendar(&self, ui: &MainWindow) {
+        let strs = |a: &[&str]| ModelRc::new(VecModel::from(a.iter().map(|s| slint::SharedString::from(*s)).collect::<Vec<_>>()));
+        let cal = ui.global::<Calendar>();
+        cal.set_months(strs(&crate::i18n::MONTHS));
+        cal.set_weekdays(strs(&crate::i18n::WEEKDAYS));
+        cal.set_today(ymd(fmt::today()));
+        cal.on_grid(|year, month| ModelRc::new(VecModel::from(fmt::month_grid(year, month.max(1) as u32))));
     }
 
     pub fn win(&self) -> MainWindow {

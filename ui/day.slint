@@ -1,4 +1,5 @@
-import { LineEdit, ListView } from "std-widgets.slint";
+import { ListView } from "std-widgets.slint";
+import { DateField } from "datefield.slint";
 import { Theme } from "theme.slint";
 import { T } from "texts.slint";
 import { Icons, IconPath, IconButton, TtButton, TtCheck } from "widgets.slint";
@@ -18,10 +19,10 @@ component DayToolbar inherits Rectangle {
         padding-top: 10px;
         padding-bottom: 4px;
         spacing: 8px;
-        LineEdit {
-            width: 130px;
+        DateField {
             text <=> DayState.date-text;
-            accepted(t) => { DayState.date-edited(t); }
+            ymd: DayState.date-ymd;
+            edited(t) => { DayState.date-edited(t); }
         }
         IconButton {
             boxed: true;

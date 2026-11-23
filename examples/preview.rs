@@ -132,10 +132,18 @@ fn main() {
     let db_path = seed(&dir, midnight);
 
     let cfg = config::Config { light_theme: theme == "light", ..Default::default() };
+    let cfg = Arc::new(RwLock::new(cfg));
+    let release = timetrek_lib::updates::Release {
+        version: "0.2.0".into(),
+        page_url: String::new(),
+        installer_url: Some("https://github.com/lenochod86/TimeTrek/releases/download/v0.2.0/TimeTrek_0.2.0_x64-setup.exe".into()),
+    };
+    let updater = Arc::new(timetrek_lib::updates::Updater::preview(release, cfg.clone(), dir.clone(), env!("CARGO_PKG_VERSION")));
     let env = Env {
+        updater,
         data_dir: dir.clone(),
         db_path,
-        config: Arc::new(RwLock::new(cfg)),
+        config: cfg,
         version: env!("CARGO_PKG_VERSION").to_string(),
         autostart: false,
     };
@@ -194,6 +202,24 @@ fn main() {
         "settings" => {
             ui.global::<Nav>().invoke_show_settings();
             pump(200);
+        }
+        "update" | "update-settings" => {
+            // Kontrola poběží na vlákně; počkáme, až se nabídka objeví.
+            pump(1200);
+            if scenario == "update-settings" {
+                ui.global::<Nav>().invoke_show_settings();
+            }
+            pump(200);
+        }
+        "datepicker" => {
+            pump(1200);
+            // Klik na tlačítko kalendáře vedle pole s datem.
+            use slint::platform::{PointerEventButton, WindowEvent};
+            let pos = slint::LogicalPosition::new(144.0, 108.0);
+            win.dispatch_event(WindowEvent::PointerMoved { position: pos });
+            win.dispatch_event(WindowEvent::PointerPressed { position: pos, button: PointerEventButton::Left });
+            win.dispatch_event(WindowEvent::PointerReleased { position: pos, button: PointerEventButton::Left });
+            pump(400);
         }
         "about" => {
             ui.global::<Nav>().invoke_show_about();

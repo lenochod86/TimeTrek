@@ -2,7 +2,7 @@
 
 use super::colors::color_for;
 use super::fmt::*;
-use super::{slint_color, BarRowD, Ctl, DayBarD, HeatD, MainWindow, Nav, RangeState, ReportsState, StatRowD, StatsState};
+use super::{slint_color, ymd, BarRowD, Ctl, DayBarD, HeatD, MainWindow, Nav, RangeState, ReportsState, StatRowD, StatsState};
 use crate::data::{self, DaySummary};
 use crate::i18n;
 use chrono::{Datelike, Duration, NaiveDate};
@@ -163,6 +163,8 @@ impl Ctl {
         let g = ui.global::<RangeState>();
         g.set_from_text(fmt_date(r.from).into());
         g.set_to_text(fmt_date(r.to).into());
+        g.set_from_ymd(ymd(r.from));
+        g.set_to_ymd(ymd(r.to));
         g.set_preset_index(PRESETS.iter().position(|p| *p == r.preset).unwrap_or(7) as i32);
         g.set_hint(format!("{} – {}", fmt_date(r.from), fmt_date(r.to)).into());
     }

@@ -2,14 +2,15 @@ import { Palette } from "std-widgets.slint";
 import { Theme } from "theme.slint";
 import { T } from "texts.slint";
 import { Icons, IconPath, IconButton } from "widgets.slint";
-import { Nav, Tip, Preview, TagDlg, Confirm, SettingsState, AboutState } from "state.slint";
+import { Nav, Tip, Preview, TagDlg, Confirm, SettingsState, AboutState, UpdateState } from "state.slint";
+import { TtButton } from "widgets.slint";
 import { DayPage } from "day.slint";
 import { StatsPage } from "stats.slint";
 import { ReportsPage } from "reports.slint";
 import { TagDialog, ConfirmDialog, SettingsDialog, AboutDialog, ViewerDialog, PreviewPopup } from "dialogs.slint";
 
-export { Nav, Tip, Preview, TagDlg, Confirm, SettingsState, AboutState, Theme, T }
-export { DayState, RangeState, StatsState, ReportsState, TickD, TagLabelD, RowD, RankD, ChipD, StatRowD, DayBarD, BarRowD, HeatD } from "state.slint";
+export { Nav, Tip, Preview, TagDlg, Confirm, SettingsState, AboutState, UpdateState, Theme, T }
+export { DayState, RangeState, DateD, Calendar, StatsState, ReportsState, TickD, TagLabelD, RowD, RankD, ChipD, StatRowD, DayBarD, BarRowD, HeatD } from "state.slint";
 
 component Tab inherits Rectangle {
     in property <string> text;
@@ -94,6 +95,41 @@ export component MainWindow inherits Window {
                     height: 1px;
                     background: Theme.dark ? #ffffff : Theme.line;
                 }
+            }
+            if UpdateState.offer: Rectangle {
+                height: 46px;
+                background: Theme.panel-2;
+                HorizontalLayout {
+                    padding-left: 14px;
+                    padding-right: 10px;
+                    padding-top: 7px;
+                    padding-bottom: 7px;
+                    spacing: 8px;
+                    Text {
+                        horizontal-stretch: 1;
+                        text: UpdateState.busy || UpdateState.progress != "" ? UpdateState.progress : UpdateState.text;
+                        color: Theme.text;
+                        vertical-alignment: center;
+                        overflow: elide;
+                    }
+                    TtButton {
+                        text: UpdateState.download-label;
+                        primary: true;
+                        enabled: !UpdateState.busy;
+                        clicked => { UpdateState.download(); }
+                    }
+                    TtButton {
+                        text: T.update-snooze;
+                        enabled: !UpdateState.busy;
+                        clicked => { UpdateState.snooze(); }
+                    }
+                    TtButton {
+                        text: T.update-skip;
+                        enabled: !UpdateState.busy;
+                        clicked => { UpdateState.skip(); }
+                    }
+                }
+                Rectangle { y: parent.height - 1px; height: 1px; background: Theme.accent; }
             }
             Rectangle {
                 vertical-stretch: 1;

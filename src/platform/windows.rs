@@ -160,6 +160,11 @@ impl PlatformApi for WinPlatform {
     fn capture_window(&self, handle: isize) -> Option<RgbaImage> {
         unsafe { capture(hwnd(handle)) }
     }
+
+    fn open_url(&self, url: &str) {
+        // explorer.exe otevře adresu ve výchozím prohlížeči (bez okna konzole a bez shellu).
+        let _ = std::process::Command::new("explorer").arg(url).spawn();
+    }
 }
 
 fn is_chromium_browser(exe: &str) -> bool {

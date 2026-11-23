@@ -2,7 +2,7 @@ import { LineEdit, SpinBox } from "std-widgets.slint";
 import { Theme } from "theme.slint";
 import { T } from "texts.slint";
 import { Icons, IconPath, IconButton, TtButton, TtSwitch, Modal } from "widgets.slint";
-import { TagDlg, Confirm, SettingsState, AboutState, Preview } from "state.slint";
+import { TagDlg, Confirm, SettingsState, AboutState, Preview, UpdateState } from "state.slint";
 
 export component TagDialog inherits Modal {
     title: T.tag-new;
@@ -97,7 +97,7 @@ export component SettingsDialog inherits Modal {
     card-width: 640px;
     close => { SettingsState.close(); }
     HorizontalLayout {
-        height: 230px;
+        height: 400px;
         Rectangle {
             width: 150px;
             background: Theme.panel-2;
@@ -127,6 +127,32 @@ export component SettingsDialog inherits Modal {
                     checked: SettingsState.autostart;
                     enabled: SettingsState.autostart-ready;
                     toggled(v) => { SettingsState.autostart-toggled(v); }
+                }
+            }
+            HorizontalLayout {
+                spacing: 16px;
+                VerticalLayout {
+                    horizontal-stretch: 1;
+                    spacing: 2px;
+                    Text { text: T.settings-update; color: Theme.text; }
+                    Text { text: T.settings-update-hint; color: Theme.muted; font-size: 12px; wrap: word-wrap; }
+                    Text { text: UpdateState.status; color: Theme.muted; font-size: 12px; wrap: word-wrap; }
+                }
+                VerticalLayout {
+                    spacing: 8px;
+                    alignment: start;
+                    TtSwitch {
+                        checked: UpdateState.check-enabled;
+                        toggled(v) => { UpdateState.check-toggled(v); }
+                    }
+                }
+            }
+            HorizontalLayout {
+                alignment: start;
+                TtButton {
+                    text: T.check-now;
+                    enabled: UpdateState.check-enabled && !UpdateState.checking;
+                    clicked => { UpdateState.check-now(); }
                 }
             }
             HorizontalLayout {

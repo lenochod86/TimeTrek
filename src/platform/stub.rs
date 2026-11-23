@@ -30,4 +30,7 @@ impl PlatformApi for StubPlatform {
     fn capture_window(&self, _handle: isize) -> Option<RgbaImage> {
         None
     }
+    fn open_url(&self, url: &str) {
+        let _ = std::process::Command::new("xdg-open").arg(url).spawn();
+    }
 }

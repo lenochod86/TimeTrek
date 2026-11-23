@@ -17,11 +17,27 @@ src/
   db.rs        SQLite (WAL), schéma, migrace
   tray.rs      systray (tray-icon): Otevřít / Zavřít
   config.rs    settings.json, sdílené živě s trackerem
+  updates.rs   kontrola nové verze (vlastní vlákno), stažení instalátoru
   single_instance.rs   jediná instance (lokální soket), autostart.rs   spuštění po přihlášení
   platform/    JEDINÉ místo závislé na OS (windows, macos, stub pro Linux)
 installer/     instalátor NSIS (timetrek.nsi, hooks.nsh, Build-Installer.ps1)
 examples/preview.rs   vykreslení UI do PNG bez okna (kontrola vzhledu)
 ```
+
+## Kontrola aktualizací
+
+`updates.rs` běží na vlastním vlákně v jádru, nezávisle na tom, jestli je okno otevřené. Po spuštění
+(nejdřív hodinu po předchozí kontrole) a pak nejvýš 1× za 24 h udělá jeden GET na
+`api.github.com/repos/lenochod86/TimeTrek/releases/latest` (bez přihlášení, jen obecný User-Agent,
+žádné údaje o uživateli). Po chybě zkusí znovu za hodinu. Jde vypnout v Nastavení (`update_check`).
+
+- Nabídka se ukáže jen pro novější verzi, kterou uživatel nepřeskočil (`skipped_version`) a která není
+  odložená (`update_snooze_until_ms`, „Odložit“ = o den). Všechno je v `settings.json`.
+- Nová verze je vidět jako banner nad obsahem okna a jako text u ikony v systray (okno se samo neotevírá).
+- „Stáhnout a nainstalovat“ stáhne `TimeTrek_<verze>_x64-setup.exe` jen z adresy
+  `github.com/lenochod86/TimeTrek/releases/download/` do dočasné složky, aplikace se ukončí (měření se uloží)
+  a až potom se instalátor spustí. Bez instalátoru u vydání se otevře stránka vydání.
+- Instalátor není podepsaný ani se nekontroluje otisk; důvěra je v HTTPS a v účet vydavatele na GitHubu.
 
 ## Okno a paměť
 
@@ -91,5 +107,7 @@ ani nefotí.
   kolečko myši na časové ose (směr zoomu), tažení a výběr značek, instalátor (`installer/timetrek.nsi`), autostart
   a zachování volby autostartu z Tauri verzí (klíč `TimeTrek` v registru zůstal stejný).
 - Dříve ověřeno ve skutečné aplikaci (Tauri verze): měření, favicony, snímky. Ověřeno jen testy: zámek, spánek.
-- Slint nemá výběr data; datum se píše jako `D.M.RRRR` (nebo `RRRR-MM-DD`) a potvrzuje Enterem.
+- Výběr data je vlastní (`ui/datefield.slint`): vestavěný `DatePickerPopup` Slintu má pevně anglické názvy a týden
+  od neděle. Mřížku dnů dodává Rust (`fmt::month_grid`). Datum jde i napsat jako `D.M.RRRR` (nebo `RRRR-MM-DD`)
+  a potvrdit Enterem.
   Tooltipy (časová osa, heatmapa) řeší globál `Tip` v `ui/state.slint`.

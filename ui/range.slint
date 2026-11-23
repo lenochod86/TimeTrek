@@ -1,4 +1,5 @@
-import { LineEdit, ComboBox } from "std-widgets.slint";
+import { ComboBox } from "std-widgets.slint";
+import { DateField } from "datefield.slint";
 import { Theme } from "theme.slint";
 import { T } from "texts.slint";
 import { Icons, IconButton } from "widgets.slint";
@@ -14,16 +15,16 @@ export component RangeBar inherits Rectangle {
         padding-right: 6px;
         spacing: 8px;
         Text { text: T.from; color: Theme.text; vertical-alignment: center; }
-        LineEdit {
-            width: 120px;
+        DateField {
             text <=> RangeState.from-text;
-            accepted(t) => { RangeState.from-edited(t); }
+            ymd: RangeState.from-ymd;
+            edited(t) => { RangeState.from-edited(t); }
         }
         Text { text: T.to; color: Theme.text; vertical-alignment: center; }
-        LineEdit {
-            width: 120px;
+        DateField {
             text <=> RangeState.to-text;
-            accepted(t) => { RangeState.to-edited(t); }
+            ymd: RangeState.to-ymd;
+            edited(t) => { RangeState.to-edited(t); }
         }
         IconButton { boxed: true; d: Icons.chev-left; clicked => { RangeState.shift(-1); } }
         IconButton { boxed: true; d: Icons.chev-right; clicked => { RangeState.shift(1); } }

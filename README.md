@@ -16,7 +16,10 @@ takže se později dá dohledat, co jsi dělal.
 - zavření okna = okno se úplně zahodí a v systray zůstane jen měření (malá spotřeba paměti);
   levý klik na ikonu nebo pravé tlačítko → **Otevřít** / **Zavřít** (ukončí měření)
 - tmavý a světlý režim (přepínač ikonou slunce / měsíce v horní liště)
-- Nastavení → General → **Spustit při startu** a **Interval nečinnosti**
+- Nastavení → General → **Spustit při startu**, **Kontrolovat aktualizace** a **Interval nečinnosti**
+- automatická kontrola nové verze (po spuštění a nejvýš 1× denně, jde vypnout): nabídne **stáhnout a nainstalovat**,
+  **odložit** o den, nebo **přeskočit** tu verzi
+- datum se vybírá z kalendáře (týden od pondělí) nebo se napíše
 
 ## Vývoj
 
