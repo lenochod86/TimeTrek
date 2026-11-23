@@ -166,14 +166,21 @@ export component SettingsDialog inherits Modal {
                 HorizontalLayout {
                     spacing: 8px;
                     alignment: end;
-                    SpinBox {
-                        width: 110px;
-                        minimum: 1;
-                        maximum: 120;
-                        value: SettingsState.idle-minutes;
-                        edited(v) => { SettingsState.idle-edited(v); }
+                    VerticalLayout {
+                        alignment: start;
+                        SpinBox {
+                            width: 110px;
+                            height: 32px;
+                            minimum: 1;
+                            maximum: 120;
+                            value: SettingsState.idle-minutes;
+                            edited(v) => { SettingsState.idle-edited(v); }
+                        }
                     }
-                    Text { text: T.minutes-short; color: Theme.text; vertical-alignment: center; }
+                    VerticalLayout {
+                        alignment: start;
+                        Text { text: T.minutes-short; color: Theme.text; height: 32px; vertical-alignment: center; }
+                    }
                 }
             }
         }
