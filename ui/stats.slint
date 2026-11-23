@@ -1,0 +1,61 @@
+import { ListView } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { T } from "texts.slint";
+import { RangeBar } from "range.slint";
+import { StatsState, StatRowD } from "state.slint";
+
+component Cell inherits Text {
+    in property <bool> bold: false;
+    vertical-alignment: center;
+    color: Theme.text;
+    font-weight: bold ? 700 : 400;
+}
+
+component StatLine inherits Rectangle {
+    in property <StatRowD> r;
+    height: 30px;
+    background: r.kind == 1 ? Theme.panel-2 : transparent;
+    HorizontalLayout {
+        padding-left: 14px;
+        padding-right: 14px;
+        Cell { width: 130px; text: r.kind == 2 ? "" : r.from; bold: r.kind != 0; }
+        Cell { horizontal-stretch: 1; text: r.kind == 0 ? r.to : r.to; bold: r.kind != 0; }
+        Cell { width: 140px; text: r.length; horizontal-alignment: right; bold: r.kind != 0; }
+        Cell { width: 140px; text: r.start; horizontal-alignment: right; bold: r.kind != 0; }
+        Cell { width: 140px; text: r.end; horizontal-alignment: right; bold: r.kind != 0; }
+    }
+}
+
+export component StatsPage inherits Rectangle {
+    VerticalLayout {
+        padding-left: 6px;
+        padding-right: 6px;
+        padding-bottom: 6px;
+        spacing: 6px;
+        RangeBar { }
+        Rectangle {
+            vertical-stretch: 1;
+            background: Theme.panel;
+            border-radius: 8px;
+            clip: true;
+            VerticalLayout {
+                Rectangle {
+                    height: 34px;
+                    background: Theme.panel-2;
+                    HorizontalLayout {
+                        padding-left: 14px;
+                        padding-right: 14px;
+                        Cell { width: 130px; text: T.from; bold: true; }
+                        Cell { horizontal-stretch: 1; text: T.to; bold: true; }
+                        Cell { width: 140px; text: T.col-length; horizontal-alignment: right; bold: true; }
+                        Cell { width: 140px; text: T.day-start; horizontal-alignment: right; bold: true; }
+                        Cell { width: 140px; text: T.day-end; horizontal-alignment: right; bold: true; }
+                    }
+                }
+                ListView {
+                    for r in StatsState.rows: StatLine { r: r; }
+                }
+            }
+        }
+    }
+}

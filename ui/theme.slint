@@ -1,0 +1,34 @@
+// Barvy tmavého a světlého režimu. Nikdy nepiš pevnou barvu, která funguje jen na jednom pozadí;
+// všechno bere z tohoto globálu.
+export global Theme {
+    in-out property <bool> dark: true;
+
+    out property <color> bg: dark ? #000000 : #f3f4f6;
+    out property <color> panel: dark ? #161616 : #ffffff;
+    out property <color> panel-2: dark ? #1f1f1f : #e9ecf0;
+    out property <color> line: dark ? #2c2c2c : #d3d7dd;
+    out property <color> text: dark ? #ececec : #1c1f24;
+    out property <color> muted: dark ? #8d8d8d : #646b75;
+    out property <color> accent: dark ? #2cffb0 : #00875f;
+    out property <color> on-accent: dark ? #000000 : #ffffff;
+    out property <color> primary: #078a5a;
+    out property <color> selected: dark ? #078a5a : #bfe8d6;
+    out property <color> selected-text: dark ? #ffffff : #0a2a1f;
+    out property <color> danger: #d4180c;
+    out property <color> hover: dark ? #222222 : #e1e5ea;
+    out property <color> hover-faint: dark ? #111111 : #eceef2;
+    out property <color> row-hover: dark ? #1f1f1f : #eef0f4;
+    out property <color> input-bg: dark ? #000000 : #ffffff;
+    out property <color> input-border: dark ? #bbbbbb : #8b929c;
+    out property <color> lane-bg: dark ? #000000 : #ffffff;
+    out property <color> label-bg: dark ? #0d0d0d : #eceef2;
+    out property <color> tick: dark ? #555555 : #9aa1ab;
+    out property <color> ov-fill: dark ? #ffffff24 : #00000014;
+    out property <color> ov-border: dark ? #ffffff80 : #00000066;
+    out property <color> pop-bg: dark ? #2b2b2b : #ffffff;
+    out property <color> pop-border: dark ? #4a4a4a : #bcc2ca;
+    out property <color> ph: dark ? #333333 : #cfd3d9;
+    out property <color> knob: dark ? #dddddd : #7b828c;
+    out property <color> track: dark ? #101010 : #e6e9ed;
+    out property <color> backdrop: #000000a0;
+}

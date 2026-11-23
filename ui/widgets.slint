@@ -1,0 +1,192 @@
+import { Theme } from "theme.slint";
+
+// Tvary ikon (SVG cesty v mřížce 16x16, tahy o šířce 1,3).
+export global Icons {
+    out property <string> chev-left: "M10 3.5L5.5 8l4.5 4.5";
+    out property <string> chev-right: "M6 3.5L10.5 8 6 12.5";
+    out property <string> close: "M3.5 3.5l9 9M12.5 3.5l-9 9";
+    out property <string> day: "M4 3h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM2 6.5h12M5.5 1.5v3M10.5 1.5v3M8 8.5V11l1.6 1";
+    out property <string> stats: "M2.5 13.5h11M4.5 12V7M8 12V3.5M11.5 12V9";
+    out property <string> reports: "M8 2.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 1 0 0-11zM8 2.5V8l3.8 3.8";
+    out property <string> sun: "M8 5.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 1 0 0-4.8zM8 1.5v1.7M8 12.8v1.7M1.5 8h1.7M12.8 8h1.7M3.4 3.4l1.2 1.2M11.4 11.4l1.2 1.2M12.6 3.4l-1.2 1.2M4.6 11.4l-1.2 1.2";
+    out property <string> moon: "M13.2 9.6A5.6 5.6 0 0 1 6.4 2.8a5.6 5.6 0 1 0 6.8 6.8z";
+    out property <string> info: "M8 2a6 6 0 1 0 0 12A6 6 0 1 0 8 2zM8 7.2v4M8 4.8v.1";
+    out property <string> target: "M8 2.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 1 0 0-11zM8 6.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 1 0 0-3z";
+    out property <string> sort-asc: "M3 10l5-5 5 5";
+    out property <string> sort-desc: "M3 6l5 5 5-5";
+    out property <string> check: "M3.5 8.5l3 3 6-7";
+    // Ozubené kolečko (obrys z ikonové sady Feather, licence MIT), mřížka 24x24.
+    out property <string> gear: "M12 9a3 3 0 1 0 0 6 3 3 0 1 0 0-6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z";
+}
+
+export component IconPath inherits Path {
+    in property <string> d;
+    in property <float> grid: 16;
+    in property <length> size: 16px;
+    in property <color> tint: Theme.text;
+    in property <length> thickness: 1.3px;
+    width: size;
+    height: size;
+    viewbox-width: grid;
+    viewbox-height: grid;
+    commands: d;
+    fill: transparent;
+    stroke: tint;
+    stroke-width: thickness;
+    stroke-line-cap: LineCap.round;
+    stroke-line-join: LineJoin.round;
+}
+
+// Textové tlačítko.
+export component TtButton inherits Rectangle {
+    in property <string> text;
+    in property <bool> primary: false;
+    in property <bool> enabled: true;
+    callback clicked();
+    height: 32px;
+    min-width: label.preferred-width + 28px;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: primary ? Theme.primary : Theme.input-border;
+    background: primary ? (ta.has-hover && enabled ? Theme.primary.brighter(0.15) : Theme.primary)
+        : (ta.has-hover && enabled ? Theme.hover : Theme.input-bg);
+    opacity: enabled ? 1.0 : 0.4;
+    ta := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+    label := Text {
+        text: root.text;
+        color: root.primary ? #ffffff : Theme.text;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}
+
+// Ikonové tlačítko (volitelně s rámečkem; `active` = zvýrazněné).
+export component IconButton inherits Rectangle {
+    in property <string> d;
+    in property <float> grid: 16;
+    in property <bool> boxed: false;
+    in property <bool> active: false;
+    in property <bool> enabled: true;
+    in property <length> thickness: 1.3px;
+    callback clicked();
+    min-width: 32px;
+    max-width: 32px;
+    min-height: boxed ? 32px : 24px;
+    max-height: boxed ? 32px : 100px;
+    border-radius: boxed ? 6px : 4px;
+    border-width: boxed ? 1px : 0px;
+    border-color: Theme.input-border;
+    background: ta.has-hover && enabled ? Theme.hover : transparent;
+    opacity: enabled ? 1.0 : 0.35;
+    ta := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+    IconPath {
+        d: root.d;
+        grid: root.grid;
+        thickness: root.thickness;
+        tint: root.active ? Theme.accent : Theme.text;
+    }
+}
+
+// Zaškrtávací políčko.
+export component TtCheck inherits Rectangle {
+    in property <bool> checked;
+    callback toggled();
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border-width: 1px;
+    border-color: checked ? Theme.accent : Theme.input-border;
+    background: checked ? Theme.accent : Theme.input-bg;
+    TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.toggled(); }
+    }
+    if root.checked: IconPath {
+        d: Icons.check;
+        size: 12px;
+        tint: Theme.on-accent;
+        thickness: 1.8px;
+    }
+}
+
+// Přepínač.
+export component TtSwitch inherits Rectangle {
+    in property <bool> checked;
+    in property <bool> enabled: true;
+    callback toggled(bool);
+    width: 42px;
+    height: 22px;
+    border-radius: 11px;
+    border-width: 1px;
+    border-color: checked ? Theme.accent : Theme.input-border;
+    background: checked ? Theme.accent : Theme.track;
+    opacity: enabled ? 1.0 : 0.5;
+    TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.toggled(!root.checked); }
+    }
+    Rectangle {
+        x: root.checked ? parent.width - self.width - 3px : 3px;
+        width: 14px;
+        height: 14px;
+        border-radius: 7px;
+        background: root.checked ? Theme.on-accent : Theme.knob;
+        animate x { duration: 100ms; }
+    }
+}
+
+// Okno nad obsahem; klik mimo ně ho zavře.
+export component Modal inherits Rectangle {
+    in property <string> title;
+    in property <length> card-width: 520px;
+    // 0 = výška podle obsahu
+    in property <length> card-height: 0px;
+    callback close();
+    width: 100%;
+    height: 100%;
+    background: Theme.backdrop;
+    TouchArea { clicked => { root.close(); } }
+    Rectangle {
+        width: min(root.card-width, parent.width - 32px);
+        height: card-height > 0px ? min(card-height, parent.height - 32px) : min(content.preferred-height, parent.height - 32px);
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        background: Theme.panel;
+        border-radius: 10px;
+        border-width: 1px;
+        border-color: Theme.pop-border;
+        clip: true;
+        TouchArea { }
+        content := VerticalLayout {
+            Rectangle {
+                height: 40px;
+                background: Theme.panel-2;
+                HorizontalLayout {
+                    padding-left: 16px;
+                    padding-right: 6px;
+                    alignment: space-between;
+                    Text {
+                        text: root.title;
+                        font-weight: 600;
+                        color: Theme.text;
+                        vertical-alignment: center;
+                    }
+                    IconButton {
+                        d: Icons.close;
+                        clicked => { root.close(); }
+                    }
+                }
+            }
+            @children
+        }
+    }
+}

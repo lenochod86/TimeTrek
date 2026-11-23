@@ -1,0 +1,201 @@
+// Rozhraní mezi Rustem a UI: Rust do těchto globálů zapisuje data a Slint volá zpětná volání.
+
+export struct TickD { frac: float, label: string, major: bool }
+export struct TagLabelD { left: float, width: float, text: string }
+export struct RowD {
+    id: int,
+    icon: image,
+    has-icon: bool,
+    title: string,
+    start: string,
+    end: string,
+    duration: string,
+    checked: bool,
+    selected: bool,
+}
+export struct RankD {
+    id: int,
+    icon: image,
+    has-icon: bool,
+    name: string,
+    time: string,
+    percent: string,
+    ratio: float,
+    color: color,
+    checked: bool,
+}
+export struct ChipD { name: string, color: color }
+// kind: 0 = den, 1 = celkem, 2 = průměr / minimum / maximum
+export struct StatRowD { kind: int, from: string, to: string, length: string, start: string, end: string }
+export struct DayBarD { value: string, label: string, ratio: float }
+export struct BarRowD { icon: image, has-icon: bool, name: string, time: string, ratio: float, color: color }
+export struct HeatD { intensity: float, tip: string }
+
+export global Nav {
+    // 0 = den, 1 = statistika, 2 = přehledy
+    in-out property <int> tab: 0;
+    callback tab-changed(int);
+    callback toggle-theme();
+    callback show-settings();
+    callback show-about();
+}
+
+export global Tip {
+    in-out property <string> text;
+    in-out property <length> x;
+    in-out property <length> y;
+}
+
+export global DayState {
+    in-out property <string> date-text;
+    in property <bool> is-today;
+    in property <string> day-start;
+    in property <string> day-end;
+    in property <string> day-length;
+
+    in property <image> lane-tags;
+    in property <image> lane-usage;
+    in property <image> lane-apps;
+    in property <image> lane-docs;
+    in property <image> overview;
+    in property <[TickD]> ticks;
+    in property <[TagLabelD]> tag-labels;
+    // Poloha značky „teď“ (0..1), -1 = skrytá.
+    in property <float> now-frac: -1;
+    in property <float> view-left;
+    in property <float> view-width: 1;
+    in property <bool> fit: true;
+
+    in property <[RowD]> rows;
+    in property <int> checked-count;
+    in property <string> checked-sum;
+    // 0 = název, 1 = spuštění, 2 = zastavení, 3 = délka; směr 1 = vzestupně, -1 = sestupně
+    in property <int> sort-key: 1;
+    in property <int> sort-dir: -1;
+    in property <int> scroll-token;
+    in property <int> scroll-row;
+    in property <bool> all-checked;
+
+    in property <[RankD]> rank;
+    in property <string> rank-total;
+
+    callback prev-day();
+    callback next-day();
+    callback go-today();
+    callback date-edited(string);
+
+    callback lane-width-changed(length);
+    callback lane-pressed(int, length);
+    callback lane-moved(int, length);
+    callback lane-released(int, length);
+    callback lane-hover(int, length, length, length);
+    callback lane-leave();
+    callback lane-context(int, length);
+    callback lane-scroll(int, length, float);
+    callback overview-pressed(length);
+    callback overview-moved(length);
+    callback overview-released();
+    callback fit-clicked();
+
+    callback row-clicked(int);
+    callback row-toggled(int);
+    callback toggle-all();
+    callback sort-clicked(int);
+    callback row-hover(int, length, length);
+    callback row-leave();
+    callback rank-toggled(int);
+}
+
+export global Preview {
+    in property <bool> visible;
+    in property <bool> locked;
+    in property <length> x;
+    in property <length> y;
+    in property <string> app;
+    in property <string> domain;
+    in property <string> title;
+    in property <image> icon;
+    in property <bool> has-icon;
+    // 0 = načítá se, 1 = snímek, 2 = žádný snímek
+    in property <int> state: 0;
+    in property <image> img;
+
+    in property <bool> viewer-open;
+    in property <string> viewer-info;
+    in property <string> viewer-title;
+    in property <image> viewer-img;
+    in property <bool> viewer-has-img;
+    in property <bool> viewer-empty;
+    in property <bool> viewer-can-prev;
+    in property <bool> viewer-can-next;
+
+    callback toggle-lock();
+    callback toggle-viewer();
+    callback viewer-step(int);
+    callback escape();
+}
+
+export global TagDlg {
+    in property <bool> open;
+    in property <string> range-text;
+    in-out property <string> name;
+    in property <[color]> colors;
+    in-out property <int> color-index;
+    in property <[ChipD]> chips;
+    callback save();
+    callback cancel();
+    callback chip-picked(int);
+    callback name-edited(string);
+}
+
+export global Confirm {
+    in property <bool> open;
+    in property <string> text;
+    callback yes();
+    callback no();
+}
+
+export global SettingsState {
+    in property <bool> open;
+    in-out property <bool> autostart;
+    in property <bool> autostart-ready;
+    in-out property <int> idle-minutes: 5;
+    callback autostart-toggled(bool);
+    callback idle-edited(int);
+    callback close();
+}
+
+export global AboutState {
+    in property <bool> open;
+    in property <string> version;
+    in property <string> data-dir;
+    in property <image> logo;
+    callback close();
+}
+
+export global RangeState {
+    in-out property <string> from-text;
+    in-out property <string> to-text;
+    in property <[string]> preset-labels;
+    in-out property <int> preset-index;
+    in property <string> hint;
+    callback from-edited(string);
+    callback to-edited(string);
+    callback shift(int);
+    callback preset-selected(int);
+}
+
+export global StatsState {
+    in property <[StatRowD]> rows;
+    in property <string> head-start;
+}
+
+export global ReportsState {
+    in property <[DayBarD]> daily;
+    in property <bool> daily-labels;
+    in property <bool> empty;
+    in property <[BarRowD]> apps;
+    in property <[BarRowD]> sites;
+    in property <[HeatD]> heat;
+    in property <[string]> weekdays;
+}

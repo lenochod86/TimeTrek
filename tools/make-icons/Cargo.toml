@@ -1,0 +1,12 @@
+[package]
+name = "make-icons"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+# Samostatný balíček mimo hlavní projekt, ať jeho závislosti nezdržují build aplikace.
+[workspace]
+
+[dependencies]
+resvg = "0.45"
+image = { version = "0.25", default-features = false, features = ["png", "ico"] }

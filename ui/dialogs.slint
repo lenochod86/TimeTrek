@@ -1,0 +1,284 @@
+import { LineEdit, SpinBox } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { T } from "texts.slint";
+import { Icons, IconPath, IconButton, TtButton, TtSwitch, Modal } from "widgets.slint";
+import { TagDlg, Confirm, SettingsState, AboutState, Preview } from "state.slint";
+
+export component TagDialog inherits Modal {
+    title: T.tag-new;
+    card-width: 440px;
+    close => { TagDlg.cancel(); }
+    VerticalLayout {
+        padding: 16px;
+        spacing: 12px;
+        Text { text: TagDlg.range-text; color: Theme.muted; font-size: 12px; }
+        Text { text: T.tag-name; color: Theme.text; }
+        name-edit := LineEdit {
+            text <=> TagDlg.name;
+            edited(t) => { TagDlg.name-edited(t); }
+            accepted(t) => { TagDlg.save(); }
+            init => { self.focus(); }
+        }
+        if TagDlg.chips.length > 0: Text { text: T.tag-existing; color: Theme.muted; font-size: 12px; }
+        if TagDlg.chips.length > 0: Flickable {
+            height: 30px;
+            interactive: false;
+            HorizontalLayout {
+                spacing: 6px;
+                alignment: start;
+                for chip[i] in TagDlg.chips: Rectangle {
+                    height: 26px;
+                    width: chip-text.preferred-width + 24px;
+                    border-radius: 13px;
+                    background: chip.color;
+                    TouchArea {
+                        mouse-cursor: MouseCursor.pointer;
+                        clicked => { TagDlg.chip-picked(i); }
+                    }
+                    chip-text := Text {
+                        text: chip.name;
+                        color: #ffffff;
+                        font-size: 12px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+        HorizontalLayout {
+            spacing: 8px;
+            alignment: start;
+            for c[i] in TagDlg.colors: Rectangle {
+                width: 28px;
+                height: 28px;
+                border-radius: 6px;
+                background: c;
+                border-width: i == TagDlg.color-index ? 3px : 0px;
+                border-color: Theme.text;
+                TouchArea {
+                    mouse-cursor: MouseCursor.pointer;
+                    clicked => { TagDlg.color-index = i; }
+                }
+            }
+        }
+        HorizontalLayout {
+            spacing: 8px;
+            alignment: end;
+            TtButton { text: T.cancel; clicked => { TagDlg.cancel(); } }
+            TtButton {
+                text: T.save;
+                primary: true;
+                enabled: TagDlg.name != "";
+                clicked => { TagDlg.save(); }
+            }
+        }
+    }
+}
+
+export component ConfirmDialog inherits Modal {
+    title: T.tag-delete;
+    card-width: 400px;
+    close => { Confirm.no(); }
+    VerticalLayout {
+        padding: 16px;
+        spacing: 16px;
+        Text { text: Confirm.text; color: Theme.text; wrap: word-wrap; }
+        HorizontalLayout {
+            spacing: 8px;
+            alignment: end;
+            TtButton { text: T.cancel; clicked => { Confirm.no(); } }
+            TtButton { text: T.delete; primary: true; clicked => { Confirm.yes(); } }
+        }
+    }
+}
+
+export component SettingsDialog inherits Modal {
+    title: T.settings;
+    card-width: 640px;
+    close => { SettingsState.close(); }
+    HorizontalLayout {
+        height: 230px;
+        Rectangle {
+            width: 150px;
+            background: Theme.panel-2;
+            Text {
+                x: 14px;
+                y: 14px;
+                text: T.settings-general;
+                color: Theme.accent;
+                font-weight: 600;
+            }
+        }
+        VerticalLayout {
+            padding: 18px;
+            spacing: 18px;
+            alignment: start;
+            Text { text: T.settings-general; font-size: 16px; font-weight: 600; color: Theme.text; }
+            HorizontalLayout {
+                spacing: 16px;
+                VerticalLayout {
+                    horizontal-stretch: 1;
+                    spacing: 2px;
+                    Text { text: T.settings-autostart; color: Theme.text; }
+                    Text { text: T.settings-autostart-hint; color: Theme.muted; font-size: 12px; wrap: word-wrap; }
+                }
+                TtSwitch {
+                    y: 0px;
+                    checked: SettingsState.autostart;
+                    enabled: SettingsState.autostart-ready;
+                    toggled(v) => { SettingsState.autostart-toggled(v); }
+                }
+            }
+            HorizontalLayout {
+                spacing: 16px;
+                VerticalLayout {
+                    horizontal-stretch: 1;
+                    spacing: 2px;
+                    Text { text: T.settings-idle; color: Theme.text; }
+                    Text { text: T.settings-idle-hint; color: Theme.muted; font-size: 12px; wrap: word-wrap; }
+                }
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: end;
+                    SpinBox {
+                        width: 110px;
+                        minimum: 1;
+                        maximum: 120;
+                        value: SettingsState.idle-minutes;
+                        edited(v) => { SettingsState.idle-edited(v); }
+                    }
+                    Text { text: T.minutes-short; color: Theme.text; vertical-alignment: center; }
+                }
+            }
+        }
+    }
+}
+
+export component AboutDialog inherits Modal {
+    title: T.about;
+    card-width: 520px;
+    close => { AboutState.close(); }
+    HorizontalLayout {
+        padding: 20px;
+        spacing: 18px;
+        Image { source: AboutState.logo; width: 72px; height: 72px; y: 0px; }
+        VerticalLayout {
+            spacing: 6px;
+            alignment: start;
+            Text { text: "TimeTrek"; font-size: 22px; font-weight: 700; color: Theme.text; }
+            Text { text: T.about-text; color: Theme.text; wrap: word-wrap; }
+            Text { text: T.about-version + ": " + AboutState.version; color: Theme.muted; font-size: 12px; }
+            Text { text: T.about-data + ": " + AboutState.data-dir; color: Theme.muted; font-size: 12px; wrap: word-wrap; }
+        }
+    }
+}
+
+// Prohlížeč snímků celého dne.
+export component ViewerDialog inherits Modal {
+    title: T.viewer-title;
+    in property <length> win-width;
+    in property <length> win-height;
+    card-width: min(1100px, win-width - 48px);
+    card-height: win-height - 48px;
+    close => { Preview.toggle-viewer(); }
+    VerticalLayout {
+        if Preview.viewer-empty: Text {
+            text: T.viewer-empty;
+            color: Theme.muted;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            vertical-stretch: 1;
+        }
+        if !Preview.viewer-empty: VerticalLayout {
+            padding: 12px;
+            spacing: 8px;
+            HorizontalLayout {
+                height: 32px;
+                spacing: 8px;
+                IconButton {
+                    d: Icons.chev-left;
+                    enabled: Preview.viewer-can-prev;
+                    clicked => { Preview.viewer-step(-1); }
+                }
+                Text {
+                    horizontal-stretch: 1;
+                    text: Preview.viewer-info;
+                    color: Theme.text;
+                    vertical-alignment: center;
+                    overflow: elide;
+                }
+                IconButton {
+                    d: Icons.chev-right;
+                    enabled: Preview.viewer-can-next;
+                    clicked => { Preview.viewer-step(1); }
+                }
+            }
+            Text { text: Preview.viewer-title; color: Theme.muted; overflow: elide; }
+            Rectangle {
+                vertical-stretch: 1;
+                background: Theme.bg;
+                border-radius: 6px;
+                clip: true;
+                if Preview.viewer-has-img: Image {
+                    source: Preview.viewer-img;
+                    image-fit: contain;
+                    width: 100%;
+                    height: 100%;
+                }
+                if !Preview.viewer-has-img: Text {
+                    text: "…";
+                    color: Theme.muted;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+    }
+}
+
+// Náhled snímku u kurzoru nad řádkem seznamu.
+export component PreviewPopup inherits Rectangle {
+    in property <length> win-width;
+    in property <length> win-height;
+    private property <length> pw: 380px;
+    width: pw;
+    height: 304px;
+    x: max(8px, min(Preview.x + 16px, win-width - pw - 8px));
+    y: max(8px, min(Preview.y + 18px, win-height - 312px));
+    background: Theme.pop-bg;
+    border-width: Preview.locked ? 2px : 1px;
+    border-color: Preview.locked ? Theme.accent : Theme.pop-border;
+    border-radius: 8px;
+    clip: true;
+    VerticalLayout {
+        padding: 8px;
+        spacing: 6px;
+        HorizontalLayout {
+            spacing: 6px;
+            height: 18px;
+            if Preview.has-icon: Image { source: Preview.icon; width: 14px; height: 14px; y: 2px; }
+            Text { text: Preview.app; font-weight: 600; color: Theme.text; vertical-alignment: center; }
+            Text { text: Preview.domain; color: Theme.muted; vertical-alignment: center; overflow: elide; }
+        }
+        Text { text: Preview.title; color: Theme.text; font-size: 12px; overflow: elide; height: 16px; }
+        Rectangle {
+            vertical-stretch: 1;
+            background: Theme.bg;
+            border-radius: 4px;
+            clip: true;
+            if Preview.state == 1: Image { source: Preview.img; image-fit: contain; width: 100%; height: 100%; }
+            if Preview.state != 1: Text {
+                text: Preview.state == 0 ? "…" : T.no-shot;
+                color: Theme.muted;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+        Text {
+            height: 14px;
+            text: Preview.locked ? T.preview-locked : T.preview-hint;
+            color: Theme.muted;
+            font-size: 11px;
+        }
+    }
+}

@@ -4,7 +4,7 @@ Vydá verzi: ověří stav, vytvoří a pushne tag vX.Y.Z. Instalátor pak sesta
 vytvoří GitHub Actions na serveru (.github/workflows/release.yml), ne tento počítač.
 
 .DESCRIPTION
-Verze se bere z tauri.conf.json (musí být zvýšená, zacommitovaná a pushnutá).
+Verze se bere z Cargo.toml (musí být zvýšená, zacommitovaná a pushnutá).
 Tag a release jsou venku viditelné, proto skript pouštěj jen na výslovné přání.
 
 .PARAMETER NoWatch
@@ -24,7 +24,10 @@ if ((git rev-parse HEAD) -ne (git rev-parse origin/main)) { throw 'HEAD se nesho
 & ./.github/scripts/Check-Versions.ps1
 if ($LASTEXITCODE -ne 0) { exit 1 }
 
-$version = (Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
+$version = $null
+foreach ($line in Get-Content Cargo.toml) {
+    if ($line -match '^\s*version\s*=\s*"([^"]+)"') { $version = $Matches[1]; break }
+}
 $tag = "v$version"
 if (git tag --list $tag) { throw "Tag $tag už existuje; zvyš verzi." }
 if (git ls-remote --tags origin $tag) { throw "Tag $tag už existuje na GitHubu; zvyš verzi." }

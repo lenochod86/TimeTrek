@@ -1,0 +1,65 @@
+[package]
+name = "timetrek"
+version = "0.1.5"
+description = "TimeTrek - automatic time tracker"
+default-run = "timetrek"
+license = "MIT"
+edition = "2021"
+
+[lib]
+name = "timetrek_lib"
+
+[build-dependencies]
+slint-build = "1.19"
+
+[target.'cfg(windows)'.build-dependencies]
+winresource = "0.1"
+
+[dependencies]
+# Software renderer: žádné GPU ani WebView, okno je po zavření úplně uvolněné.
+slint = { version = "1.19", default-features = false, features = [
+  "std", "backend-winit", "renderer-software", "software-renderer-systemfonts", "compat-1-2",
+  "unstable-winit-030",
+] }
+auto-launch = "0.6"
+dirs = "7"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+chrono = "0.4"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "ico", "gif", "webp", "bmp"] }
+ureq = "2"
+url = "2"
+log = "0.4"
+
+# Ikona v oznamovací oblasti (na Linuxu se pro vývoj a testy nebere, tam by chtěla GTK).
+[target.'cfg(any(windows, target_os = "macos"))'.dependencies]
+tray-icon = { version = "0.26", default-features = false }
+
+[target.'cfg(windows)'.dependencies.windows]
+version = "0.58"
+features = [
+  "Win32_Foundation",
+  "Win32_Graphics_Gdi",
+  "Win32_Storage_FileSystem",
+  "Win32_Storage_Xps",
+  "Win32_System_Com",
+  "Win32_System_StationsAndDesktops",
+  "Win32_System_SystemInformation",
+  "Win32_System_Threading",
+  "Win32_System_Variant",
+  "Win32_UI_Accessibility",
+  "Win32_UI_Input_KeyboardAndMouse",
+  "Win32_UI_Shell",
+  "Win32_UI_WindowsAndMessaging",
+]
+
+[[example]]
+name = "preview"
+path = "examples/preview.rs"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "s"
+strip = true

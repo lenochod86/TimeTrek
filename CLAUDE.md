@@ -1,6 +1,6 @@
 # TimeTrek
 
-Malý hobby time tracker pro Windows (případně později macOS): běží v systray, měří, jak dlouho uživatel pracuje v jaké aplikaci a na jakém webu, pořizuje snímky aktivního okna a zobrazuje přehledy dne, statistiky a reporty. Stack: Tauri 2 (jádro v Rustu) + React/TypeScript UI.
+Malý hobby time tracker pro Windows (případně později macOS): běží v systray, měří, jak dlouho uživatel pracuje v jaké aplikaci a na jakém webu, pořizuje snímky aktivního okna a zobrazuje přehledy dne, statistiky a reporty. Stack: jeden proces v Rustu, rozhraní ve Slintu (software renderer, žádný prohlížeč ani WebView).
 
 Tyto instrukce platí v každém prostředí. Pracuj všude stejně.
 
@@ -9,7 +9,7 @@ Tyto instrukce platí v každém prostředí. Pracuj všude stejně.
 - **S uživatelem mluv česky.**
 - **Vše v repozitáři je česky:** dokumentace, commit zprávy i texty v UI. Žádné pravidlo o angličtině tu neplatí.
 - Identifikátory v kódu zůstávají anglicky (běžná praxe) a stávající anglické komentáře nepřepisuj. Nové komentáře piš česky.
-- Texty UI jsou ve slovníku `src/i18n/cs.ts` (dále menu v tray v `src-tauri/src/tray.rs` a pár uložených zástupných titulků v trackeru), ne přímo v komponentách.
+- Texty UI jsou ve `ui/texts.slint` (globál `T`); texty skládané v Rustu (menu v tray, dny v týdnu, období, štítky souhrnů) v `src/i18n.rs` a pár uložených zástupných titulků v trackeru. Ne přímo v komponentách.
 
 ## Dokumenty
 
@@ -26,44 +26,44 @@ Repozitář: `lenochod86/TimeTrek`, větev `main`.
 - Před každým commitem spusť kontroly níže. Nikdy necommituj červený stav.
 - Nikdy nedělej force push a nepřepisuj historii, která už je pushnutá.
 - Na začátku session spusť `git status` a `git fetch`. Nikdy nepřepisuj ani nemaž necommitnuté změny; napřed se zeptej.
-- Do repozitáře nikdy nedávej: hesla, tokeny, uživatelova data (`%AppData%\TimeTrek`: databáze, snímky, nastavení) ani snímky uživatelovy obrazovky. Generované soubory (`node_modules/`, `dist/`, `src-tauri/target/`, `src-tauri/gen/`) zůstávají v `.gitignore`.
+- Do repozitáře nikdy nedávej: hesla, tokeny, uživatelova data (`%AppData%\TimeTrek`: databáze, snímky, nastavení) ani snímky uživatelovy obrazovky. Generované soubory (`target/`) zůstávají v `.gitignore`.
 - Když GitHub není dostupný, řekni to uživateli. Push nikdy potichu nevynechej.
 
 ## Kontroly před commitem
 
-- `pwsh .github/scripts/Verify-Local.ps1`: shoda verzí, `tsc`, `vite build` a `cargo test` (žádná varování). To je to, co by dělalo CI, jen zdarma na tomto počítači.
+- `pwsh .github/scripts/Verify-Local.ps1`: shoda verzí, `cargo check --all-targets` a `cargo test` (žádná varování). To je to, co by dělalo CI, jen zdarma na tomto počítači.
 - Cokoli, co mění chování, se navíc vyzkouší ve skutečné aplikaci (viz „Ověření ve skutečné aplikaci“).
 
 ## CI/CD a minuty GitHub Actions
 
 Repozitář je **veřejný**, takže minuty Actions jsou zdarma. Build a kontroly běží na serveru (GitHub Actions), ne na uživatelově PC:
 
-- `ci.yml` se spouští při každém pushi do `main` a při pull requestu (verze, `tsc`, `vite build`, `cargo test`; zhruba 5 minut na `windows-latest`). Po pushi počkej na výsledek (`gh run watch`) a červený běh oprav.
+- `ci.yml` se spouští při každém pushi do `main` a při pull requestu (verze, `cargo check`, `cargo test`; zhruba 5 minut na `windows-latest`). Po pushi počkej na výsledek (`gh run watch`) a červený běh oprav.
 - Vydání verze: zvyš verzi (viz Build a verze), zacommituj, pushni a spusť `pwsh .github/scripts/Release.ps1`. Skript jen vytvoří a pushne tag `vX.Y.Z`; **instalátor sestaví a GitHub Release vytvoří `release.yml` na serveru**. Je to venku viditelná akce, proto jen na výslovné přání uživatele.
 - `release.yml` jde pustit i ručně (`gh workflow run release.yml`): sestaví instalátor jako artefakt běhu bez vydání. Hodí se na vyzkoušení buildu.
 - `Verify-Local.ps1` dělá stejné kontroly lokálně; pouštěj ho před commitem, ať se necommituje červený stav.
-- `Check-Versions.ps1` hlídá, že `package.json`, `Cargo.toml` a `tauri.conf.json` mají stejnou verzi (u tagu i shodu s tagem).
+- `Check-Versions.ps1` hlídá, že `Cargo.toml` a `Cargo.lock` mají stejnou verzi (u tagu i shodu s tagem).
 - Kdyby se repozitář vrátil na privátní, minuty jsou omezené: pak z `ci.yml` odeber triggery `push` / `pull_request` a zeptej se uživatele.
 
 ## Architektura a kód
 
-- Jádro v Rustu (`src-tauri/src`): měření, ukládání, snímky, favicony, tray, příkazy. React UI (`src`) jen zobrazuje data a volá příkazy Tauri.
+- Jádro v Rustu (`src`): měření, ukládání, snímky, favicony, tray. UI ve Slintu (`ui/*.slint` jen vzhled, `src/ui` logika okna) jen zobrazuje data z `src/data.rs` a mění nastavení; logika UI patří do Rustu, ne do `.slint`.
 - **Veškerý kód závislý na OS je za `platform::PlatformApi`** (`platform/windows.rs`, `platform/macos.rs` jako zástupce). Tracker, databáze ani UI nevolají API operačního systému přímo. Nová schopnost OS znamená novou metodu traitu a implementaci pro každou platformu.
 - Rozhodování měření je v `Engine::step` (`tracker.rs`), čisté funkci času, sekund nečinnosti, stavu zámku a aktivního okna. Tak to nech, aby šla testovat se simulovaným časem.
-- Nikdy neblokuj smyčku trackeru: pomalá práce (snímky, stahování faviconů) běží na vlastním vlákně.
+- Nikdy neblokuj smyčku trackeru: pomalá práce (snímky, stahování faviconů) běží na vlastním vlákně. Okno existuje jen když je otevřené (zavření ho zahodí, viz `docs/architecture.md`); do UI nepřidávej nic, co by drželo paměť po zavření.
 - Soukromí: vše zůstává na počítači. Ukládej jen **doménu** webu, nikdy celou URL. Anonymní okna prohlížeče se neměří ani nefotí. Favicony stahuj přímo z navštíveného webu, nikdy přes službu třetí strany. Žádná telemetrie.
-- **Data jsou v `%AppData%\TimeTrek`** (`app.path().data_dir().join("TimeTrek")`). Generovaný odinstalátor Tauri maže jen složky podle identifikátoru, proto tuto složku při volbě „Delete the application data“ maže vlastní krok v `src-tauri/windows/hooks.nsh` (`installerHooks` v `tauri.conf.json`). Změníš-li název složky, změň ho i tam (`TT_DATA_DIRNAME`).
-- **Tmavý a světlý režim.** UI má přepínač (ikona slunce / měsíce v titulku; volba se ukládá do `localStorage`). Barvy v `src/styles.css` bere výhradně z proměnných `:root` (tmavé) a `:root[data-theme='light']` (světlé); nikdy nepiš pevnou barvu, která funguje jen na jednom pozadí. Vizuální změnu zkontroluj v **obou** režimech (přepínač můžeš v testu používat bez ptaní, na konci nech tmavý).
+- **Data jsou v `%AppData%\TimeTrek`** (`dirs::data_dir().join("TimeTrek")` v `src/app.rs`). Odinstalátor se na jejich smazání zeptá v `installer/hooks.nsh`. Změníš-li název složky, změň ho i tam (`TT_DATA_DIRNAME`). Název klíče autostartu (`TimeTrek`, `src/autostart.rs`) neměň, ať zůstane volba z dřívějších verzí.
+- **Tmavý a světlý režim.** UI má přepínač (ikona slunce / měsíce v horní liště; volba se ukládá do `settings.json`). Barvy ve `.slint` bere výhradně z globálu `Theme` (`ui/theme.slint`); nikdy nepiš pevnou barvu, která funguje jen na jednom pozadí. Vizuální změnu zkontroluj v **obou** režimech (`cargo run --example preview -- --theme dark|light ...` vykreslí okno do PNG i bez Windows; ve skutečné aplikaci přepínač můžeš používat bez ptaní, na konci nech tmavý).
 - Čas se ukládá v milisekundách od epochy; hranice dne (lokální půlnoc) se počítají v UI.
 - Každé nové pravidlo měření má test v `tracker.rs`; každá oprava chyby má test, který chybu chytí.
-- Drž styl okolního kódu. Nastavení, která uživatel může měnit, patří do dialogu Nastavení (`src/components/Dialogs.tsx`) a uplatní se bez restartu.
+- Drž styl okolního kódu. Nastavení, která uživatel může měnit, patří do dialogu Nastavení (`ui/dialogs.slint`, `src/ui/dialogs.rs`) a uplatní se bez restartu.
 
 ## Build a verze
 
-- Vývojový běh: `npm run tauri dev`. Instalátor: `npx tauri build` -> `src-tauri/target/release/bundle/nsis/TimeTrek_<verze>_x64-setup.exe`.
-- Ikony se generují z `assets/icon/timetrek.svg` příkazem `npm run icons`.
-- U každého instalátoru předaného uživateli zvyš verzi (`package.json`, `src-tauri/Cargo.toml` a `src-tauri/tauri.conf.json` musí mít stejnou) a řekni, o jakou verzi jde.
-- Když `node`, `cargo` nebo `npx` v novém shellu nejsou na PATH, obnov PATH ze systémového a uživatelského prostředí (instalovaly se přes winget).
+- Vývojový běh: `cargo run`. Instalátor: `pwsh installer/Build-Installer.ps1` (potřebuje NSIS) -> `target/release/bundle/nsis/TimeTrek_<verze>_x64-setup.exe`.
+- Ikony se generují z `assets/icon/timetrek.svg` příkazem `cargo run --manifest-path tools/make-icons/Cargo.toml`.
+- U každého instalátoru předaného uživateli zvyš verzi v `Cargo.toml` (a nech aktualizovat `Cargo.lock`) a řekni, o jakou verzi jde.
+- Když `cargo` nebo `makensis` v novém shellu nejsou na PATH, obnov PATH ze systémového a uživatelského prostředí (instalovaly se přes winget).
 
 ## Ověření ve skutečné aplikaci
 

@@ -1,0 +1,499 @@
+import { LineEdit, ListView } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { T } from "texts.slint";
+import { Icons, IconPath, IconButton, TtButton, TtCheck } from "widgets.slint";
+import { DayState, Tip, RowD, RankD } from "state.slint";
+
+component DayStat inherits HorizontalLayout {
+    in property <string> label;
+    in property <string> value;
+    spacing: 4px;
+    Text { text: root.label; font-size: 11px; color: Theme.text; vertical-alignment: bottom; }
+    Text { text: root.value; font-size: 16px; font-weight: 700; color: Theme.text; vertical-alignment: bottom; }
+}
+
+component DayToolbar inherits Rectangle {
+    height: 46px;
+    HorizontalLayout {
+        padding-top: 10px;
+        padding-bottom: 4px;
+        spacing: 8px;
+        LineEdit {
+            width: 130px;
+            text <=> DayState.date-text;
+            accepted(t) => { DayState.date-edited(t); }
+        }
+        IconButton {
+            boxed: true;
+            d: Icons.chev-left;
+            clicked => { DayState.prev-day(); }
+        }
+        IconButton {
+            boxed: true;
+            d: Icons.chev-right;
+            clicked => { DayState.next-day(); }
+        }
+        TtButton {
+            text: T.today;
+            enabled: !DayState.is-today;
+            clicked => { DayState.go-today(); }
+        }
+        Rectangle { horizontal-stretch: 1; }
+        DayStat { label: T.day-start; value: DayState.day-start; }
+        Rectangle { width: 6px; }
+        DayStat { label: T.day-end; value: DayState.day-end; }
+        Rectangle { width: 6px; }
+        DayStat { label: T.day-length; value: DayState.day-length; }
+    }
+}
+
+// Jeden pruh časové osy: bitmapu kreslí Rust, tady se jen zobrazí a zachytává myš.
+component Lane inherits Rectangle {
+    in property <int> index;
+    in property <image> img;
+    in property <bool> crosshair: false;
+    height: 52px;
+    background: Theme.lane-bg;
+    border-width: 1px;
+    border-color: Theme.line;
+    Image {
+        x: 0px;
+        y: 1px;
+        width: parent.width - 2px;
+        height: parent.height - 2px;
+        source: root.img;
+        image-fit: fill;
+    }
+    @children
+    ta := TouchArea {
+        mouse-cursor: root.crosshair ? MouseCursor.crosshair : MouseCursor.grab;
+        pointer-event(e) => {
+            if e.button == PointerEventButton.left {
+                if e.kind == PointerEventKind.down {
+                    DayState.lane-pressed(root.index, self.mouse-x);
+                } else if e.kind == PointerEventKind.up {
+                    DayState.lane-released(root.index, self.mouse-x);
+                }
+            } else if e.button == PointerEventButton.right && e.kind == PointerEventKind.down {
+                DayState.lane-context(root.index, self.mouse-x);
+            }
+        }
+        moved => { DayState.lane-moved(root.index, self.mouse-x); }
+        changed mouse-x => {
+            DayState.lane-hover(root.index, self.mouse-x, self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y);
+        }
+        changed has-hover => {
+            if !self.has-hover { DayState.lane-leave(); }
+        }
+        scroll-event(e) => {
+            DayState.lane-scroll(root.index, self.mouse-x, e.delta-y / 1px);
+            accept
+        }
+    }
+}
+
+component Timeline inherits Rectangle {
+    private property <length> gutter: 126px;
+    height: 28px + 4 * 52px + 30px + 1px;
+    border-width: 0px;
+    VerticalLayout {
+        // osa s časy
+        Rectangle {
+            height: 28px;
+            HorizontalLayout {
+                Rectangle { width: gutter; }
+                Rectangle {
+                    clip: true;
+                    for tick in DayState.ticks: Rectangle {
+                        x: tick.frac * parent.width - 30px;
+                        width: 60px;
+                        Text {
+                            y: 6px;
+                            width: 100%;
+                            horizontal-alignment: center;
+                            text: tick.label;
+                            font-size: tick.major ? 12px : 10px;
+                            color: tick.major ? Theme.text : Theme.muted;
+                        }
+                        Rectangle {
+                            x: 30px;
+                            y: 20px;
+                            width: 1px;
+                            height: 4px;
+                            background: Theme.tick;
+                        }
+                    }
+                    Rectangle {
+                        y: parent.height - 1px;
+                        height: 1px;
+                        background: Theme.line;
+                    }
+                }
+            }
+        }
+        // pruhy
+        HorizontalLayout {
+            VerticalLayout {
+                width: gutter;
+                for name in [T.lane-tags, T.lane-usage, T.lane-apps, T.lane-docs]: Rectangle {
+                    height: 52px;
+                    background: Theme.label-bg;
+                    border-width: 1px;
+                    border-color: Theme.line;
+                    Text {
+                        x: 12px;
+                        text: name;
+                        font-weight: 600;
+                        color: Theme.text;
+                        vertical-alignment: center;
+                        width: parent.width - 16px;
+                        overflow: elide;
+                    }
+                }
+            }
+            area := Rectangle {
+                changed width => { DayState.lane-width-changed(self.width); }
+                init => { DayState.lane-width-changed(self.width); }
+                VerticalLayout {
+                    Lane {
+                        index: 0;
+                        img: DayState.lane-tags;
+                        crosshair: true;
+                        Rectangle {
+                            x: 0px;
+                            y: 1px;
+                            width: parent.width - 2px;
+                            height: parent.height - 2px;
+                            clip: true;
+                            for l in DayState.tag-labels: Text {
+                                x: l.left * parent.width + 6px;
+                                width: max(l.width * parent.width - 8px, 0px);
+                                height: parent.height;
+                                text: l.text;
+                                color: #ffffffeb;
+                                font-size: 12px;
+                                vertical-alignment: center;
+                                overflow: elide;
+                            }
+                        }
+                    }
+                    Lane { index: 1; img: DayState.lane-usage; }
+                    Lane { index: 2; img: DayState.lane-apps; }
+                    Lane { index: 3; img: DayState.lane-docs; }
+                }
+                if DayState.now-frac >= 0: Rectangle {
+                    x: DayState.now-frac * parent.width - 1px;
+                    y: 0px;
+                    width: 2px;
+                    height: 4 * 52px;
+                    background: Theme.danger;
+                }
+            }
+        }
+        // přehled celého dne
+        Rectangle {
+            height: 30px;
+            HorizontalLayout {
+                Rectangle {
+                    width: gutter;
+                    IconButton {
+                        x: 4px;
+                        d: Icons.target;
+                        active: DayState.fit;
+                        clicked => { DayState.fit-clicked(); }
+                    }
+                }
+                ov := Rectangle {
+                    clip: true;
+                    background: Theme.lane-bg;
+                    Rectangle {
+                        y: 0px;
+                        height: 1px;
+                        background: Theme.line;
+                    }
+                    Image {
+                        source: DayState.overview;
+                        image-fit: fill;
+                        width: 100%;
+                        height: 100%;
+                    }
+                    for h in 12: Text {
+                        x: (h * 2) / 24.0 * parent.width - 10px;
+                        y: 8px;
+                        width: 20px;
+                        horizontal-alignment: center;
+                        text: (h * 2 < 10 ? "0" : "") + (h * 2);
+                        font-size: 10px;
+                        color: Theme.muted;
+                    }
+                    Rectangle {
+                        x: DayState.view-left * parent.width;
+                        width: max(6px, DayState.view-width * parent.width);
+                        background: Theme.ov-fill;
+                        border-width: 1px;
+                        border-color: Theme.ov-border;
+                        border-radius: 3px;
+                    }
+                    TouchArea {
+                        mouse-cursor: MouseCursor.pointer;
+                        pointer-event(e) => {
+                            if e.button == PointerEventButton.left && e.kind == PointerEventKind.down {
+                                DayState.overview-pressed(self.mouse-x);
+                            } else if e.button == PointerEventButton.left && e.kind == PointerEventKind.up {
+                                DayState.overview-released();
+                            }
+                        }
+                        moved => { DayState.overview-moved(self.mouse-x); }
+                    }
+                }
+            }
+        }
+    }
+}
+
+component RowItem inherits Rectangle {
+    in property <RowD> it;
+    height: 25px;
+    border-radius: 3px;
+    background: it.selected ? Theme.selected : (ta.has-hover ? Theme.row-hover : transparent);
+    ta := TouchArea {
+        clicked => { DayState.row-clicked(it.id); }
+        changed mouse-x => { DayState.row-hover(it.id, self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y); }
+        changed mouse-y => { DayState.row-hover(it.id, self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y); }
+        changed has-hover => {
+            if self.has-hover {
+                DayState.row-hover(it.id, self.absolute-position.x + self.mouse-x, self.absolute-position.y + self.mouse-y);
+            } else {
+                DayState.row-leave();
+            }
+        }
+    }
+    HorizontalLayout {
+        Rectangle {
+            width: 34px;
+            TtCheck {
+                checked: it.checked;
+                toggled => { DayState.row-toggled(it.id); }
+            }
+        }
+        Rectangle {
+            width: 26px;
+            if it.has-icon: Image {
+                source: it.icon;
+                width: 16px;
+                height: 16px;
+            }
+            if !it.has-icon: Rectangle {
+                width: 16px;
+                height: 16px;
+                border-radius: 4px;
+                background: Theme.ph;
+            }
+        }
+        Text {
+            horizontal-stretch: 1;
+            text: it.title;
+            overflow: elide;
+            vertical-alignment: center;
+            color: it.selected ? Theme.selected-text : Theme.text;
+        }
+        Text {
+            width: 86px;
+            text: it.start;
+            horizontal-alignment: right;
+            vertical-alignment: center;
+            color: it.selected ? Theme.selected-text : Theme.text;
+        }
+        Text {
+            width: 86px;
+            text: it.end;
+            horizontal-alignment: right;
+            vertical-alignment: center;
+            color: it.selected ? Theme.selected-text : Theme.text;
+        }
+        Text {
+            width: 92px;
+            text: it.duration;
+            horizontal-alignment: right;
+            vertical-alignment: center;
+            color: it.selected ? Theme.selected-text : Theme.text;
+        }
+        Rectangle { width: 14px; }
+    }
+}
+
+component SortHead inherits Rectangle {
+    in property <string> text;
+    in property <int> key;
+    in property <bool> right: false;
+    background: ta.has-hover ? Theme.hover : transparent;
+    ta := TouchArea {
+        mouse-cursor: MouseCursor.pointer;
+        clicked => { DayState.sort-clicked(root.key); }
+    }
+    HorizontalLayout {
+        alignment: root.right ? end : start;
+        spacing: 6px;
+        padding-right: root.right ? 14px : 0px;
+        Text {
+            text: root.text;
+            font-weight: 600;
+            vertical-alignment: center;
+            color: Theme.text;
+        }
+        if DayState.sort-key == root.key: IconPath {
+            y: (parent.height - self.height) / 2;
+            d: DayState.sort-dir == 1 ? Icons.sort-asc : Icons.sort-desc;
+            size: 10px;
+        }
+    }
+}
+
+component SegmentList inherits Rectangle {
+    background: Theme.panel;
+    border-radius: 8px;
+    clip: true;
+    changed scroll-tok => {
+        list.content-y = min(0px, max(-(DayState.scroll-row * 25px) + list.height / 2 - 12px, list.height - list.content-height));
+    }
+    private property <int> scroll-tok: DayState.scroll-token;
+    VerticalLayout {
+        Rectangle {
+            height: 34px;
+            background: Theme.panel-2;
+            HorizontalLayout {
+                Rectangle {
+                    width: 34px;
+                    TtCheck {
+                        checked: DayState.all-checked;
+                        toggled => { DayState.toggle-all(); }
+                    }
+                }
+                Rectangle { width: 26px; }
+                SortHead { horizontal-stretch: 1; text: T.col-name; key: 0; }
+                SortHead { width: 86px; text: T.col-start; key: 1; right: true; }
+                SortHead { width: 86px; text: T.col-stop; key: 2; right: true; }
+                SortHead { width: 92px; text: T.col-duration; key: 3; right: true; }
+                Rectangle { width: 14px; }
+            }
+        }
+        list := ListView {
+            vertical-stretch: 1;
+            for r in DayState.rows: RowItem { it: r; }
+        }
+        if DayState.rows.length == 0: Text {
+            text: T.no-data;
+            color: Theme.muted;
+            horizontal-alignment: center;
+        }
+        if DayState.checked-count > 0: Rectangle {
+            height: 30px;
+            Rectangle { height: 1px; background: Theme.line; y: 0px; }
+            Text {
+                x: parent.width - self.width - 14px;
+                text: T.selected + ": " + DayState.checked-count + " · " + DayState.checked-sum;
+                color: Theme.text;
+                vertical-alignment: center;
+            }
+        }
+    }
+}
+
+component RankRow inherits Rectangle {
+    in property <RankD> r;
+    height: 27px;
+    background: ta.has-hover ? Theme.row-hover : transparent;
+    ta := TouchArea { clicked => { DayState.rank-toggled(r.id); } }
+    HorizontalLayout {
+        spacing: 0px;
+        Rectangle {
+            width: 34px;
+            TtCheck {
+                checked: r.checked;
+                toggled => { DayState.rank-toggled(r.id); }
+            }
+        }
+        Rectangle {
+            width: 26px;
+            if r.has-icon: Image { source: r.icon; width: 16px; height: 16px; }
+            if !r.has-icon: Rectangle { width: 16px; height: 16px; border-radius: 4px; background: Theme.ph; }
+        }
+        Text {
+            width: 150px;
+            text: r.name;
+            overflow: elide;
+            vertical-alignment: center;
+            color: Theme.text;
+        }
+        Rectangle {
+            horizontal-stretch: 1;
+            Rectangle {
+                height: 16px;
+                background: Theme.panel-2;
+                border-radius: 3px;
+                clip: true;
+                Rectangle {
+                    x: 0px;
+                    width: max(r.ratio * parent.width, 2px);
+                    background: r.color;
+                }
+            }
+        }
+        Text {
+            width: 56px;
+            text: r.percent;
+            font-size: 12px;
+            color: Theme.muted;
+            horizontal-alignment: right;
+            vertical-alignment: center;
+        }
+        Text {
+            width: 84px;
+            text: r.time;
+            horizontal-alignment: right;
+            vertical-alignment: center;
+            color: Theme.text;
+        }
+        Rectangle { width: 10px; }
+    }
+}
+
+component RankPanel inherits Rectangle {
+    background: Theme.panel;
+    border-radius: 8px;
+    clip: true;
+    VerticalLayout {
+        ListView {
+            vertical-stretch: 1;
+            for r in DayState.rank: RankRow { r: r; }
+        }
+        Rectangle {
+            height: 30px;
+            Rectangle { height: 1px; background: Theme.line; y: 0px; }
+            Text {
+                x: parent.width - self.width - 14px;
+                text: T.total + ": " + DayState.rank-total;
+                color: Theme.text;
+                vertical-alignment: center;
+                font-weight: 600;
+            }
+        }
+    }
+}
+
+export component DayPage inherits Rectangle {
+    VerticalLayout {
+        padding-left: 6px;
+        padding-right: 6px;
+        padding-bottom: 6px;
+        spacing: 6px;
+        DayToolbar { }
+        Timeline { }
+        HorizontalLayout {
+            spacing: 6px;
+            vertical-stretch: 1;
+            SegmentList { horizontal-stretch: 1; }
+            RankPanel { width: max(420px, root.width * 0.34); }
+        }
+    }
+}

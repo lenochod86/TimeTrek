@@ -1,0 +1,169 @@
+import { ListView } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { T } from "texts.slint";
+import { RangeBar } from "range.slint";
+import { ReportsState, Tip, BarRowD } from "state.slint";
+
+component Card inherits Rectangle {
+    in property <string> title;
+    background: Theme.panel;
+    border-radius: 8px;
+    clip: true;
+    VerticalLayout {
+        padding: 14px;
+        spacing: 8px;
+        Text { text: root.title; font-size: 14px; font-weight: 600; color: Theme.text; }
+        @children
+    }
+}
+
+component BarRow inherits Rectangle {
+    in property <BarRowD> r;
+    height: 24px;
+    HorizontalLayout {
+        spacing: 8px;
+        Rectangle {
+            width: 20px;
+            if r.has-icon: Image { source: r.icon; width: 16px; height: 16px; }
+            if !r.has-icon: Rectangle { width: 16px; height: 16px; border-radius: 4px; background: Theme.ph; }
+        }
+        Text { width: 170px; text: r.name; overflow: elide; vertical-alignment: center; color: Theme.text; }
+        Rectangle {
+            horizontal-stretch: 1;
+            Rectangle {
+                height: 12px;
+                background: Theme.panel-2;
+                border-radius: 3px;
+                clip: true;
+                Rectangle { x: 0px; width: max(r.ratio * parent.width, 2px); background: r.color; }
+            }
+        }
+        Text { width: 76px; text: r.time; horizontal-alignment: right; vertical-alignment: center; color: Theme.text; }
+    }
+}
+
+component BarList inherits Rectangle {
+    in property <[BarRowD]> rows;
+    VerticalLayout {
+        alignment: start;
+        if rows.length == 0: Text { text: T.rep-none; color: Theme.muted; }
+        for r in rows: BarRow { r: r; }
+    }
+}
+
+component Daily inherits Rectangle {
+    min-height: 170px;
+    if ReportsState.empty: Text {
+        text: T.rep-none;
+        color: Theme.muted;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+    if !ReportsState.empty: HorizontalLayout {
+        spacing: 2px;
+        for d in ReportsState.daily: Rectangle {
+            VerticalLayout {
+                Text {
+                    height: 16px;
+                    text: d.value;
+                    font-size: 10px;
+                    color: Theme.muted;
+                    horizontal-alignment: center;
+                    overflow: elide;
+                }
+                Rectangle {
+                    vertical-stretch: 1;
+                    Rectangle {
+                        y: parent.height * (1 - d.ratio);
+                        height: parent.height * d.ratio;
+                        width: 100%;
+                        background: Theme.accent;
+                        border-radius: 2px;
+                    }
+                }
+                Text {
+                    height: ReportsState.daily-labels ? 16px : 0px;
+                    text: ReportsState.daily-labels ? d.label : "";
+                    font-size: 10px;
+                    color: Theme.muted;
+                    horizontal-alignment: center;
+                }
+            }
+        }
+    }
+}
+
+component Heat inherits Rectangle {
+    min-height: 7 * 22px + 24px;
+    private property <length> label-w: 28px;
+    VerticalLayout {
+        spacing: 2px;
+        HorizontalLayout {
+            height: 18px;
+            Rectangle { width: label-w; }
+            for h in 24: Text {
+                text: h;
+                font-size: 10px;
+                color: Theme.muted;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+        for wd in 7: HorizontalLayout {
+            spacing: 2px;
+            height: 20px;
+            Text { width: label-w; text: ReportsState.weekdays[wd]; color: Theme.muted; vertical-alignment: center; }
+            for h in 24: Rectangle {
+                border-radius: 3px;
+                background: ReportsState.heat[wd * 24 + h].intensity > 0
+                    ? Theme.accent.with-alpha(0.12 + 0.88 * ReportsState.heat[wd * 24 + h].intensity)
+                    : Theme.panel-2;
+                ta := TouchArea {
+                    changed has-hover => {
+                        if self.has-hover && ReportsState.heat[wd * 24 + h].intensity > 0 {
+                            Tip.text = ReportsState.heat[wd * 24 + h].tip;
+                            Tip.x = self.absolute-position.x + self.width / 2;
+                            Tip.y = self.absolute-position.y;
+                        } else {
+                            Tip.text = "";
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+export component ReportsPage inherits Rectangle {
+    VerticalLayout {
+        padding-left: 6px;
+        padding-right: 6px;
+        padding-bottom: 6px;
+        spacing: 6px;
+        RangeBar { }
+        Flickable {
+            vertical-stretch: 1;
+            content-height: grid.preferred-height;
+            grid := VerticalLayout {
+                spacing: 6px;
+                alignment: start;
+                Card {
+                    title: T.rep-daily;
+                    height: 250px;
+                    Daily { vertical-stretch: 1; }
+                }
+                HorizontalLayout {
+                    spacing: 6px;
+                    height: 12 * 24px + 60px;
+                    Card { title: T.rep-apps; BarList { rows: ReportsState.apps; vertical-stretch: 1; } }
+                    Card { title: T.rep-sites; BarList { rows: ReportsState.sites; vertical-stretch: 1; } }
+                }
+                Card {
+                    title: T.rep-heat;
+                    height: 7 * 22px + 24px + 60px;
+                    Heat { }
+                }
+            }
+        }
+    }
+}

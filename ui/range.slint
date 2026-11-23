@@ -1,0 +1,39 @@
+import { LineEdit, ComboBox } from "std-widgets.slint";
+import { Theme } from "theme.slint";
+import { T } from "texts.slint";
+import { Icons, IconButton } from "widgets.slint";
+import { RangeState } from "state.slint";
+
+// Výběr období (společný pro Statistiku a Přehledy).
+export component RangeBar inherits Rectangle {
+    height: 46px;
+    HorizontalLayout {
+        padding-top: 10px;
+        padding-bottom: 4px;
+        padding-left: 6px;
+        padding-right: 6px;
+        spacing: 8px;
+        Text { text: T.from; color: Theme.text; vertical-alignment: center; }
+        LineEdit {
+            width: 120px;
+            text <=> RangeState.from-text;
+            accepted(t) => { RangeState.from-edited(t); }
+        }
+        Text { text: T.to; color: Theme.text; vertical-alignment: center; }
+        LineEdit {
+            width: 120px;
+            text <=> RangeState.to-text;
+            accepted(t) => { RangeState.to-edited(t); }
+        }
+        IconButton { boxed: true; d: Icons.chev-left; clicked => { RangeState.shift(-1); } }
+        IconButton { boxed: true; d: Icons.chev-right; clicked => { RangeState.shift(1); } }
+        ComboBox {
+            width: 190px;
+            model: RangeState.preset-labels;
+            current-index: RangeState.preset-index;
+            selected(v) => { RangeState.preset-selected(self.current-index); }
+        }
+        Rectangle { horizontal-stretch: 1; }
+        Text { text: RangeState.hint; color: Theme.muted; font-size: 12px; vertical-alignment: center; }
+    }
+}
