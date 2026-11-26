@@ -220,6 +220,8 @@ impl Ctl {
             .map(|r| StatRowD {
                 kind: 0,
                 label: fmt_date(r.date).into(),
+                weekday: i18n::WEEKDAYS[weekday_index(r.date)].into(),
+                weekend: weekday_index(r.date) >= 5,
                 length: format!("{} {}", fmt_hours(r.length), i18n::HOURS_SHORT).into(),
                 start: r.start.map(fmt_hm).unwrap_or_default().into(),
                 end: r.end.map(fmt_hm).unwrap_or_default().into(),
@@ -228,6 +230,8 @@ impl Ctl {
         out.push(StatRowD {
             kind: 1,
             label: i18n::ROW_TOTAL.into(),
+            weekday: "".into(),
+            weekend: false,
             length: format!("{} {}", fmt_hours(sum), i18n::HOURS_SHORT).into(),
             start: "".into(),
             end: "".into(),
@@ -248,6 +252,8 @@ impl Ctl {
                 out.push(StatRowD {
                     kind: 2,
                     label: label.into(),
+                    weekday: "".into(),
+                    weekend: false,
                     length: format!("{} {}", fmt_hours(len.round() as i64), i18n::HOURS_SHORT).into(),
                     start: fmt_minutes_of_day(st_).into(),
                     end: fmt_minutes_of_day(en).into(),
