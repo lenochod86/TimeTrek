@@ -27,7 +27,7 @@ export struct RankD {
 }
 export struct ChipD { name: string, color: color }
 // kind: 0 = den, 1 = celkem, 2 = průměr / minimum / maximum
-export struct StatRowD { kind: int, from: string, to: string, length: string, start: string, end: string }
+export struct StatRowD { kind: int, label: string, length: string, start: string, end: string }
 export struct DayBarD { value: string, label: string, ratio: float }
 export struct BarRowD { icon: image, has-icon: bool, name: string, time: string, ratio: float, color: color }
 export struct HeatD { intensity: float, tip: string }
@@ -198,7 +198,6 @@ export global RangeState {
 
 export global StatsState {
     in property <[StatRowD]> rows;
-    in property <string> head-start;
 }
 
 export global ReportsState {

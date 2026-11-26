@@ -4,6 +4,7 @@ import { T } from "texts.slint";
 import { RangeBar } from "range.slint";
 import { StatsState, StatRowD } from "state.slint";
 
+// Sloupce jsou těsně u sebe, ať se po řádku dobře čte.
 component Cell inherits Text {
     in property <bool> bold: false;
     vertical-alignment: center;
@@ -18,11 +19,10 @@ component StatLine inherits Rectangle {
     HorizontalLayout {
         padding-left: 14px;
         padding-right: 14px;
-        Cell { width: 130px; text: r.kind == 2 ? "" : r.from; bold: r.kind != 0; }
-        Cell { horizontal-stretch: 1; text: r.kind == 0 ? r.to : r.to; bold: r.kind != 0; }
-        Cell { width: 140px; text: r.length; horizontal-alignment: right; bold: r.kind != 0; }
-        Cell { width: 140px; text: r.start; horizontal-alignment: right; bold: r.kind != 0; }
-        Cell { width: 140px; text: r.end; horizontal-alignment: right; bold: r.kind != 0; }
+        Cell { width: 120px; text: r.label; bold: r.kind != 0; }
+        Cell { width: 100px; text: r.length; horizontal-alignment: right; bold: r.kind != 0; }
+        Cell { width: 110px; text: r.start; horizontal-alignment: right; bold: r.kind != 0; }
+        Cell { width: 110px; text: r.end; horizontal-alignment: right; bold: r.kind != 0; }
     }
 }
 
@@ -33,27 +33,30 @@ export component StatsPage inherits Rectangle {
         padding-bottom: 6px;
         spacing: 6px;
         RangeBar { }
-        Rectangle {
+        HorizontalLayout {
             vertical-stretch: 1;
-            background: Theme.panel;
-            border-radius: 8px;
-            clip: true;
-            VerticalLayout {
-                Rectangle {
-                    height: 34px;
-                    background: Theme.panel-2;
-                    HorizontalLayout {
-                        padding-left: 14px;
-                        padding-right: 14px;
-                        Cell { width: 130px; text: T.from; bold: true; }
-                        Cell { horizontal-stretch: 1; text: T.to; bold: true; }
-                        Cell { width: 140px; text: T.col-length; horizontal-alignment: right; bold: true; }
-                        Cell { width: 140px; text: T.day-start; horizontal-alignment: right; bold: true; }
-                        Cell { width: 140px; text: T.day-end; horizontal-alignment: right; bold: true; }
+            alignment: start;
+            Rectangle {
+                width: 14px + 120px + 100px + 110px + 110px + 14px;
+                background: Theme.panel;
+                border-radius: 8px;
+                clip: true;
+                VerticalLayout {
+                    Rectangle {
+                        height: 34px;
+                        background: Theme.panel-2;
+                        HorizontalLayout {
+                            padding-left: 14px;
+                            padding-right: 14px;
+                            Cell { width: 120px; text: T.date; bold: true; }
+                            Cell { width: 100px; text: T.col-length; horizontal-alignment: right; bold: true; }
+                            Cell { width: 110px; text: T.day-start; horizontal-alignment: right; bold: true; }
+                            Cell { width: 110px; text: T.day-end; horizontal-alignment: right; bold: true; }
+                        }
                     }
-                }
-                ListView {
-                    for r in StatsState.rows: StatLine { r: r; }
+                    ListView {
+                        for r in StatsState.rows: StatLine { r: r; }
+                    }
                 }
             }
         }

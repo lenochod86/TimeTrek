@@ -219,8 +219,7 @@ impl Ctl {
             .iter()
             .map(|r| StatRowD {
                 kind: 0,
-                from: fmt_date(r.date).into(),
-                to: fmt_date(r.date).into(),
+                label: fmt_date(r.date).into(),
                 length: format!("{} {}", fmt_hours(r.length), i18n::HOURS_SHORT).into(),
                 start: r.start.map(fmt_hm).unwrap_or_default().into(),
                 end: r.end.map(fmt_hm).unwrap_or_default().into(),
@@ -228,8 +227,7 @@ impl Ctl {
             .collect();
         out.push(StatRowD {
             kind: 1,
-            from: "".into(),
-            to: i18n::ROW_TOTAL.into(),
+            label: i18n::ROW_TOTAL.into(),
             length: format!("{} {}", fmt_hours(sum), i18n::HOURS_SHORT).into(),
             start: "".into(),
             end: "".into(),
@@ -249,8 +247,7 @@ impl Ctl {
                 let en = agg(&|r| minutes_of_day(r.end.unwrap()), pick);
                 out.push(StatRowD {
                     kind: 2,
-                    from: "".into(),
-                    to: label.into(),
+                    label: label.into(),
                     length: format!("{} {}", fmt_hours(len.round() as i64), i18n::HOURS_SHORT).into(),
                     start: fmt_minutes_of_day(st_).into(),
                     end: fmt_minutes_of_day(en).into(),
